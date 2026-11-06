@@ -45,8 +45,10 @@ class HomeScreen extends StatelessWidget {
           ),
           SizedBox(height: 16),
           FilledButton(
-            onPressed: null,
-            child: Text('افتح المذكرة الجديدة 📝'),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LessonNoteScreen()),
+            ),
+            child: const Text('افتح المذكرة الجديدة 📝'),
           ),
         ],
       ),
