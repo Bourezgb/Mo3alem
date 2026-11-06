@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/bambi_theme.dart';
 import '../widgets/bambi_card.dart';
+import 'lesson_note_screen.dart';
 
 /// 🌸 لوحة القيادة الأسبوعية (الشاشة الرئيسية)
 /// الأرقام والنصوص هنا تجريبية، وستُربط بالبيانات المحلية لاحقاً.
@@ -41,6 +42,11 @@ class HomeScreen extends StatelessWidget {
             title: 'المذكرات',
             color: BambiColors.mint,
             child: Text('المذكرة الأولى جاهزة للكتابة.'),
+          ),
+          SizedBox(height: 16),
+          FilledButton(
+            onPressed: null,
+            child: Text('افتح المذكرة الجديدة 📝'),
           ),
         ],
       ),
