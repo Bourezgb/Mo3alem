@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../data/note_repository.dart';
+import '../models/lesson_note.dart';
 import '../theme/bambi_theme.dart';
 import '../widgets/bambi_card.dart';
 
@@ -15,6 +17,11 @@ class LessonNoteScreen extends StatefulWidget {
 
 class _LessonNoteScreenState extends State<LessonNoteScreen> {
   static const _phases = ['الانطلاق', 'بناء التعلمات', 'الاستثمار'];
+
+  final _repository = NoteRepository();
+  final _id = DateTime.now().microsecondsSinceEpoch.toString();
+  final _createdAt = DateTime.now();
+  bool _saving = false;
 
   final _domain = TextEditingController();
   final _unit = TextEditingController();
@@ -45,6 +52,44 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final note = LessonNote(
+      id: _id,
+      createdAt: _createdAt,
+      domain: _domain.text.trim(),
+      unit: _unit.text.trim(),
+      objective: _objective.text.trim(),
+      competency: _competency.text.trim(),
+      noteNumber: _noteNumber.text.trim(),
+      resources: _resources.text.trim(),
+      duration: _duration.text.trim(),
+      phases: [
+        for (var i = 0; i < _phases.length; i++)
+          LessonPhase(
+            name: _phases[i],
+            situations: _situations[i].text.trim(),
+            indicators: _indicators[i].text.trim(),
+          ),
+      ],
+    );
+
+    try {
+      await _repository.save(note);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم حفظ المذكرة على الهاتف 🦋')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('تعذر الحفظ، حاولي مرة أخرى: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Widget _field(String label, TextEditingController c, {int lines = 1}) {
@@ -150,12 +195,8 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
           ),
           const SizedBox(height: 16),
           FilledButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('الحفظ على الجهاز يُضاف في الخطوة التالية 🦋')),
-              );
-            },
-            child: const Text('حفظ المذكرة'),
+            onPressed: _saving ? null : _save,
+            child: Text(_saving ? 'جارٍ الحفظ…' : 'حفظ المذكرة'),
           ),
         ],
       ),

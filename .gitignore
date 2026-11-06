@@ -19,7 +19,7 @@ gemini*.json
 *api_key*
 
 # بيانات التلاميذ والمذكرات الحقيقية
-data/
+/data/
 exports/
 *.pdf
 students*.json
