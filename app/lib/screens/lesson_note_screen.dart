@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../data/note_repository.dart';
+import '../data/app_store.dart';
 import '../models/lesson_note.dart';
+import '../pdf/pdf_builder.dart';
+import '../services/gemini_service.dart';
 import '../theme/bambi_theme.dart';
 import '../widgets/bambi_card.dart';
+import 'pdf_preview_screen.dart';
 
-/// 📝 شاشة المذكرة اليومية
-/// الحقول الثلاثة: رأس المذكرة (أعلى)، وجانب المذكرة، والجدول بالمراحل الثلاث.
-/// الحفظ على الجهاز ومعاينة PDF يُضافان في الخطوة التالية.
+/// 📝 شاشة المذكرة اليومية.
+/// التطبيق لا يكتب المراحل. المعلمة تكتبها، والتطبيق ينظّم ويفحص ويُخرج PDF.
 class LessonNoteScreen extends StatefulWidget {
   const LessonNoteScreen({super.key});
 
@@ -16,12 +18,13 @@ class LessonNoteScreen extends StatefulWidget {
 }
 
 class _LessonNoteScreenState extends State<LessonNoteScreen> {
-  static const _phases = ['الانطلاق', 'بناء التعلمات', 'الاستثمار'];
+  static const _phaseNames = ['الانطلاق', 'بناء التعلمات', 'الاستثمار'];
 
-  final _repository = NoteRepository();
+  final _store = AppStore();
+  final _gemini = GeminiService();
   final _id = DateTime.now().microsecondsSinceEpoch.toString();
   final _createdAt = DateTime.now();
-  bool _saving = false;
+  bool _busy = false;
 
   final _domain = TextEditingController();
   final _unit = TextEditingController();
@@ -32,9 +35,9 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
   final _duration = TextEditingController();
 
   late final List<TextEditingController> _situations =
-      List.generate(_phases.length, (_) => TextEditingController());
+      List.generate(_phaseNames.length, (_) => TextEditingController());
   late final List<TextEditingController> _indicators =
-      List.generate(_phases.length, (_) => TextEditingController());
+      List.generate(_phaseNames.length, (_) => TextEditingController());
 
   @override
   void dispose() {
@@ -54,41 +57,102 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
     super.dispose();
   }
 
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    final note = LessonNote(
-      id: _id,
-      createdAt: _createdAt,
-      domain: _domain.text.trim(),
-      unit: _unit.text.trim(),
-      objective: _objective.text.trim(),
-      competency: _competency.text.trim(),
-      noteNumber: _noteNumber.text.trim(),
-      resources: _resources.text.trim(),
-      duration: _duration.text.trim(),
-      phases: [
-        for (var i = 0; i < _phases.length; i++)
-          LessonPhase(
-            name: _phases[i],
-            situations: _situations[i].text.trim(),
-            indicators: _indicators[i].text.trim(),
-          ),
-      ],
-    );
+  LessonNote _buildNote() => LessonNote(
+        id: _id,
+        createdAt: _createdAt,
+        domain: _domain.text.trim(),
+        unit: _unit.text.trim(),
+        objective: _objective.text.trim(),
+        competency: _competency.text.trim(),
+        noteNumber: _noteNumber.text.trim(),
+        resources: _resources.text.trim(),
+        duration: _duration.text.trim(),
+        phases: [
+          for (var i = 0; i < _phaseNames.length; i++)
+            LessonPhase(
+              name: _phaseNames[i],
+              situations: _situations[i].text.trim(),
+              indicators: _indicators[i].text.trim(),
+            ),
+        ],
+      );
 
+  void _snack(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
+  }
+
+  Future<void> _save() async {
+    setState(() => _busy = true);
     try {
-      await _repository.save(note);
+      final note = _buildNote();
+      final data = await _store.load();
+      final index = data.notes.indexWhere((n) => n.id == note.id);
+      if (index == -1) {
+        data.notes.add(note);
+      } else {
+        data.notes[index] = note;
+      }
+      await _store.save(data);
+      _snack('تم حفظ المذكرة على الهاتف 🦋');
+    } catch (e) {
+      _snack('تعذّر الحفظ، حاولي مرة أخرى: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _checkStartIndicators() async {
+    final items = _indicators[0].text
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+    if (items.isEmpty) {
+      _snack('اكتبي مؤشرات الانطلاق أولاً');
+      return;
+    }
+
+    setState(() => _busy = true);
+    try {
+      final results = await _gemini.checkIndicators(items);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ المذكرة على الهاتف 🦋')),
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('فحص مؤشرات الانطلاق'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final r in results)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      r.ok
+                          ? '✅ ${r.text}'
+                          : '⚠️ ${r.text}\n    ${r.problem}',
+                    ),
+                  ),
+                const Text(
+                  'التطبيق يُنبّه فقط، والنص لم يتغيّر.',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        ),
       );
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('تعذر الحفظ، حاولي مرة أخرى: $e')),
-      );
+      _snack('$e');
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -128,10 +192,10 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
             _Cell('مؤشرات التقويم', bold: true),
           ],
         ),
-        for (var i = 0; i < _phases.length; i++)
+        for (var i = 0; i < _phaseNames.length; i++)
           TableRow(
             children: [
-              _Cell(_phases[i], bold: true),
+              _Cell(_phaseNames[i], bold: true),
               _InputCell(_situations[i]),
               _InputCell(_indicators[i]),
             ],
@@ -143,7 +207,23 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('📝 المذكرة اليومية')),
+      appBar: AppBar(
+        title: const Text('📝 المذكرة اليومية'),
+        actions: [
+          IconButton(
+            tooltip: 'معاينة PDF',
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => PdfPreviewScreen(
+                  title: 'مذكرة يومية',
+                  makePdf: () => buildLessonNotePdf(_buildNote()),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -175,9 +255,7 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
                     hintText: 'الثانية ابتدائي',
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                    ),
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -194,9 +272,14 @@ class _LessonNoteScreenState extends State<LessonNoteScreen> {
             child: _phaseTable(),
           ),
           const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: _busy ? null : _checkStartIndicators,
+            child: const Text('فحص مؤشرات الانطلاق 🌟 (Gemini)'),
+          ),
+          const SizedBox(height: 8),
           FilledButton(
-            onPressed: _saving ? null : _save,
-            child: Text(_saving ? 'جارٍ الحفظ…' : 'حفظ المذكرة'),
+            onPressed: _busy ? null : _save,
+            child: Text(_busy ? 'جارٍ…' : 'حفظ المذكرة'),
           ),
         ],
       ),
