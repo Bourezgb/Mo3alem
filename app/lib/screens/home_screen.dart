@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/bambi_theme.dart';
 import '../widgets/bambi_card.dart';
 import 'lesson_note_screen.dart';
+import 'settings_screen.dart';
 
 /// 🌸 لوحة القيادة الأسبوعية (الشاشة الرئيسية)
 /// الأرقام والنصوص هنا تجريبية، وستُربط بالبيانات المحلية لاحقاً.
@@ -12,7 +13,18 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('🌸 مكتب نهاد')),
+      appBar: AppBar(
+        title: const Text('🌸 مكتب نهاد'),
+        actions: [
+          IconButton(
+            tooltip: 'الإعدادات',
+            icon: const Text('🦋', style: TextStyle(fontSize: 22)),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
