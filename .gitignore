@@ -1,0 +1,32 @@
+# Flutter / Dart
+app/.dart_tool/
+app/build/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/ios/Pods/
+app/android/.gradle/
+app/*.iml
+app/.idea/
+app/.vscode/
+
+# Secrets: مفاتيح API لا تُرفع أبداً
+.env
+.env.*
+*.key
+secrets/
+gemini*.json
+*api_key*
+
+# بيانات التلاميذ والمذكرات الحقيقية
+data/
+exports/
+*.pdf
+students*.json
+students*.csv
+*.db
+*.sqlite
+
+# عام
+.DS_Store
+Thumbs.db
