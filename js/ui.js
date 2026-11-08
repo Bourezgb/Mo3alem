@@ -2,7 +2,7 @@
 
 import {
   TOTAL_WEEKS, WEEKDAYS, DURATIONS, WEEK_STATUSES, WEEK_STATUS_LABELS, PHASE_NAMES, LEVEL,
-  statusOf, lostIn, subjectsOf, newId, emptyData,
+  statusOf, lostIn, subjectsOf, newId, emptyData, seedTemplate,
 } from './model.js';
 import { buildPlan, inWeek } from './scheduler.js';
 import { saveData, exportBackup, readBackupFile, requestPersistence } from './store.js';
@@ -287,7 +287,8 @@ function viewTimetable() {
           : '<p class="muted">أضيفي حصصاً أولاً لتظهر المواد هنا.</p>'}
       </section>
 
-      <button class="btn block" id="tt-preview">معاينة الجدول PDF</button>`,
+      <button class="btn block" id="tt-preview">معاينة الجدول PDF</button>
+      <button class="btn block danger" id="tt-reset">استعادة القالب الأصلي من استعمال الزمن</button>`,
   });
 
   document.getElementById('slot-form').onsubmit = (e) => {
@@ -321,6 +322,15 @@ function viewTimetable() {
   });
 
   document.getElementById('tt-preview').onclick = () => preview(timetableDoc(data));
+
+  document.getElementById('tt-reset').onclick = () => {
+    if (!confirm('سيستبدل القالب الحالي بالقالب الأصلي (30 حصة). متابعة؟')) return;
+    data.template = seedTemplate();
+    if (save()) {
+      toast('تم استعادة القالب الأصلي');
+      viewTimetable();
+    }
+  };
 }
 
 // ---------- أوراق الدعم ----------

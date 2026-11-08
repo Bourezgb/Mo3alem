@@ -67,3 +67,11 @@ test('الدرس لا ينتقل إلى مادة أخرى أبداً', () => {
     }
   }
 });
+
+test('القالب الأصلي يطابق استعمال الزمن: 30 حصة، والإدماج يوم الخميس', async () => {
+  const { SEED_TEMPLATE, INTEGRATION_WEEKS, ASSESSMENT_WEEKS } = await import('../js/model.js');
+  assert.equal(SEED_TEMPLATE.length, 30);
+  assert.equal(SEED_TEMPLATE.filter((s) => s.day === 4).length, 3);
+  assert.deepEqual(INTEGRATION_WEEKS, [9, 17, 24, 32]);
+  assert.deepEqual(ASSESSMENT_WEEKS, [13, 25]);
+});
