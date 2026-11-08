@@ -22,10 +22,10 @@ function profileOf(profile) {
 }
 
 /** الصفحة بكاملها: رأس رسمي، عنوان، محتوى، وتذييل باسم الأستاذة. */
-function page({ title, subtitle = '', profile, body, landscape = false }) {
+function page({ title, subtitle = '', profile, body, landscape = false, fill = false }) {
   const p = profileOf(profile);
   return `
-  <article class="doc${landscape ? ' landscape' : ''}">
+  <article class="doc${landscape ? ' landscape' : ''}${fill ? ' fill' : ''}">
     <header class="doc-head">
       <div class="org">
         <p class="ministry">${esc(p.district)}</p>
@@ -55,33 +55,40 @@ export function noteDoc(n, profile) {
       <td>${multiline(ph.situations)}</td>
       <td>${multiline(ph.indicators)}</td>
     </tr>`).join('');
-  const info = [
-    ['الميدان', n.domain], ['المقطع التعلمي', n.unit],
-    ['رقم المذكرة', n.noteNumber], ['المدة الزمنية', n.duration],
-  ];
-  const infoCells = info.map(([k, v]) => `<th>${k}</th><td>${esc(v)}</td>`);
-  const pairs = [];
-  for (let i = 0; i < infoCells.length; i += 2) {
-    pairs.push(`<tr>${infoCells[i]}${infoCells[i + 1]}</tr>`);
-  }
   const body = `
-    <table class="info">
-      ${pairs.join('')}
-      <tr><th>المستوى</th><td colspan="3">${esc(LEVEL)}</td></tr>
-      <tr><th>الهدف التعلمي</th><td colspan="3">${multiline(n.objective)}</td></tr>
-      <tr><th>الكفاءة المستهدفة</th><td colspan="3">${multiline(n.competency)}</td></tr>
-      <tr><th>الوسائل</th><td colspan="3">${multiline(n.resources)}</td></tr>
-    </table>
-    <h2>سير الحصة</h2>
-    <table>
-      <thead><tr><th>المرحلة</th><th>الوضعيات التعلمية</th><th>مؤشرات التقويم</th></tr></thead>
-      <tbody>${phases}</tbody>
-    </table>
-    <div class="sign">
-      <span>توقيع الأستاذة: ..........................</span>
-      <span>ملاحظة المدير(ة): ..........................</span>
+    <div class="note-layout">
+      <div class="note-main">
+        <table class="info">
+          <tr><th>الميدان</th><td>${esc(n.domain)}</td></tr>
+          <tr><th>المقطع التعلمي</th><td>${esc(n.unit)}</td></tr>
+          <tr><th>الهدف التعلمي</th><td>${multiline(n.objective)}</td></tr>
+          <tr><th>الكفاءة المستهدفة</th><td>${multiline(n.competency)}</td></tr>
+        </table>
+        <div class="phases-wrap">
+          <table class="phases">
+            <thead><tr><th>المراحل</th><th>الوضعيات التعلمية</th><th>مؤشرات التقويم</th></tr></thead>
+            <tbody>${phases}</tbody>
+          </table>
+        </div>
+        <div class="sign">
+          <span>توقيع الأستاذة: ..........................</span>
+          <span>ملاحظة المدير(ة): ..........................</span>
+        </div>
+      </div>
+      <aside class="note-side">
+        <div><span>الأسبوع رقم</span><strong>${esc(n.noteNumber)}</strong></div>
+        <div><span>المستوى</span>${esc(LEVEL)}</div>
+        <div><span>الوسائل</span>${multiline(n.resources)}</div>
+        <div><span>المدة الزمنية</span>${esc(n.duration)}</div>
+      </aside>
     </div>`;
-  return page({ title: 'مذكرة يومية', subtitle: n.unit ? `المقطع: ${n.unit}` : '', profile, body });
+  return page({
+    title: 'مذكرة يومية',
+    subtitle: n.unit ? `المقطع: ${n.unit}` : '',
+    profile,
+    body,
+    fill: true,
+  });
 }
 
 export function worksheetDoc(s, profile) {
