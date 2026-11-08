@@ -89,7 +89,7 @@ Future<Uint8List> buildLessonNotePdf(LessonNote note) async {
   return doc.save();
 }
 
-/// 🌈 ورقة دعم: المهارات المستهدفة والتمارين المختارة من الكتاب.
+/// 🧩 ورقة دعم: المهارات المستهدفة والتمارين المختارة من الكتاب.
 Future<Uint8List> buildWorksheetPdf(SupportSheet sheet) async {
   final doc = pw.Document(theme: await _theme());
   doc.addPage(

@@ -144,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         BambiCard(
-          emoji: '🌈',
+          emoji: '🧩',
           title: 'أوراق الدعم',
           color: BambiColors.lavender,
           child: Text(
@@ -179,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             OutlinedButton(
               onPressed: () => _open(const SupportSheetsScreen()),
-              child: const Text('أوراق الدعم 🌈'),
+              child: const Text('أوراق الدعم 🧩'),
             ),
             OutlinedButton(
               onPressed: () => _open(const NotesListScreen()),

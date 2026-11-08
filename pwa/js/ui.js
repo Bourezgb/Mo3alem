@@ -41,7 +41,7 @@ function go(hash) {
 const NAV = [
   { id: 'home', hash: '#/home', icon: '🌸', label: 'الرئيسية' },
   { id: 'timetable', hash: '#/timetable', icon: '🗓️', label: 'الجدول' },
-  { id: 'sheets', hash: '#/sheets', icon: '🌈', label: 'الدعم' },
+  { id: 'sheets', hash: '#/sheets', icon: '🧩', label: 'الدعم' },
   { id: 'notes', hash: '#/notes', icon: '⭐', label: 'المذكرات' },
   { id: 'settings', hash: '#/settings', icon: '🦋', label: 'الإعدادات' },
 ];
@@ -150,7 +150,7 @@ function viewHome() {
       </section>
 
       <section class="card lavender">
-        <h2>🌈 أوراق الدعم</h2>
+        <h2>🧩 أوراق الدعم</h2>
         <p>${sheets.length ? `${sheets.length} ورقة لهذا الأسبوع.` : 'لا توجد أوراق دعم لهذا الأسبوع.'}</p>
       </section>
 
@@ -163,7 +163,7 @@ function viewHome() {
         <a class="btn primary" href="#/note/new">مذكرة جديدة 📝</a>
         <a class="btn" href="#/week/${w}">أيام غير دراسية وحالة الأسبوع</a>
         <a class="btn" href="#/timetable">الجدول والمنهج 🗓️</a>
-        <a class="btn" href="#/sheets">أوراق الدعم 🌈</a>
+        <a class="btn" href="#/sheets">أوراق الدعم 🧩</a>
         <a class="btn" href="#/notes">كل المذكرات ⭐</a>
       </div>`,
   });
@@ -327,7 +327,7 @@ function viewTimetable() {
 function viewSheets() {
   const sheets = [...data.sheets].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   page({
-    title: '🌈 أوراق الدعم',
+    title: '🧩 أوراق الدعم',
     active: 'sheets',
     body: `
       <a class="btn primary block" href="#/sheets/new">➕ ورقة دعم جديدة</a>
@@ -361,7 +361,7 @@ function viewSheets() {
 function viewSheetNew() {
   const subjects = subjectsOf(data);
   page({
-    title: '🌈 ورقة دعم جديدة',
+    title: '🧩 ورقة دعم جديدة',
     active: 'sheets',
     back: '#/sheets',
     body: subjects.length ? `

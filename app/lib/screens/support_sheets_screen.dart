@@ -6,7 +6,7 @@ import '../pdf/pdf_builder.dart';
 import '../theme/bambi_theme.dart';
 import 'pdf_preview_screen.dart';
 
-/// 🌈 أوراق الدعم الاستثنائية: قائمة، وإنشاء من النقائص المسجّلة.
+/// 🧩 أوراق الدعم الاستثنائية: قائمة، وإنشاء من النقائص المسجّلة.
 class SupportSheetsScreen extends StatefulWidget {
   const SupportSheetsScreen({super.key});
 
@@ -54,7 +54,7 @@ class _SupportSheetsScreenState extends State<SupportSheetsScreen> {
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt)));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('🌈 أوراق الدعم')),
+      appBar: AppBar(title: const Text('🧩 أوراق الدعم')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createSheet,
         icon: const Icon(Icons.add),
@@ -177,7 +177,7 @@ class _NewSupportSheetScreenState extends State<_NewSupportSheetScreen> {
   Widget build(BuildContext context) {
     final data = _data;
     return Scaffold(
-      appBar: AppBar(title: const Text('🌈 ورقة دعم جديدة')),
+      appBar: AppBar(title: const Text('🧩 ورقة دعم جديدة')),
       body: data == null
           ? const Center(child: CircularProgressIndicator())
           : ListView(

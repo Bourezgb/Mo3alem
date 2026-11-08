@@ -180,7 +180,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 BambiCard(
-                  emoji: '🌈',
+                  emoji: '🧩',
                   title: 'القالب الأسبوعي',
                   color: BambiColors.blue,
                   child: data.template.isEmpty
