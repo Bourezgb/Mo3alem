@@ -24,6 +24,11 @@ jobs:
           flutter create --platforms=android --org com.bourezg --project-name mo3alem_nihad .
           rm -f test/widget_test.dart
 
+      - name: Use Gradle distribution mirror
+        run: |
+          sed -i -E 's#distributionUrl=.*#distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-all.zip#' android/gradle/wrapper/gradle-wrapper.properties
+          grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
+
       - name: Set minSdk for secure storage
         run: |
           if [ -f android/app/build.gradle.kts ]; then
