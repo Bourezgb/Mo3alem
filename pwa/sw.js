@@ -1,5 +1,5 @@
 // تخزين التطبيق للعمل دون اتصال. نسخة جديدة من الملفات = رقم كاش جديد.
-const CACHE = "mo3alem-v3";
+const CACHE = "mo3alem-v4";
 const SHELL = [
   './',
   './index.html',
@@ -30,11 +30,18 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// الشبكة أولاً حتى لا تبقى نسخة قديمة من الكود على الهاتف؛ الكاش للعمل دون اتصال فقط.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   // طلبات Gemini وغيرها تمر دائماً عبر الشبكة.
-  if (url.origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin || event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((hit) => hit || fetch(event.request)),
+    fetch(event.request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(event.request, copy));
+        return res;
+      })
+      .catch(() => caches.match(event.request)),
   );
 });
