@@ -64,7 +64,7 @@ function page({ title, body, active, back }) {
 function occurrenceText(o) {
   if (o.state === 'lesson') return `${o.lessonTitle}${o.delayed ? ' (مُؤجَّل)' : ''}`;
   if (o.state === 'lost') return 'يوم غير دراسي';
-  if (o.state === 'free') return 'بلا درس، لم يبقَ دروس لهذه المادة';
+  if (o.state === 'free') return 'بلا درس';
   return 'متوقفة أو تقويم';
 }
 
@@ -107,6 +107,8 @@ function showCheckResults(results) {
 
 // ---------- الرئيسية ----------
 
+let homeDay = null;
+
 function viewHome() {
   const plan = buildPlan(data);
   const w = data.currentWeek;
@@ -114,6 +116,11 @@ function viewHome() {
   const occ = inWeek(plan, w);
   const sheets = data.sheets.filter((s) => s.week === w);
   const teaching = status === 'study' || status === 'integration';
+
+  if (homeDay === null) {
+    const today = new Date().getDay();
+    homeDay = today <= 4 ? today : 0;
+  }
 
   let slots;
   if (!occ.length) {
@@ -123,11 +130,21 @@ function viewHome() {
       ? 'أسبوع متوقف، لا تُولَّد فيه حصص.'
       : 'أسبوع تقويم، تتوقف فيه تحضيرات الدروس.'}</p>`;
   } else {
-    slots = occ.map((o) => `
-      <div class="slot ${o.state}">
-        <strong>${WEEKDAYS[o.day]} · ${esc(o.subject)}</strong>
-        <span>${esc(occurrenceText(o))}</span>
-      </div>`).join('');
+    const dayItems = occ.filter((o) => o.day === homeDay);
+    slots = `
+      <div class="day-tabs">
+        ${WEEKDAYS.map((d, i) => {
+          const n = occ.filter((o) => o.day === i && o.state === 'lesson').length;
+          return `<button class="day-tab ${i === homeDay ? 'on' : ''}" data-day="${i}">${d}<small>${n} درس</small></button>`;
+        }).join('')}
+      </div>
+      <div class="day-list">
+        ${dayItems.length ? dayItems.map((o) => `
+          <div class="slot ${o.state}">
+            <strong>${esc(o.subject)} <small>${o.minutes} د</small></strong>
+            <span>${esc(occurrenceText(o))}</span>
+          </div>`).join('') : '<p class="muted">لا حصص في هذا اليوم.</p>'}
+      </div>`;
   }
 
   page({
@@ -167,6 +184,13 @@ function viewHome() {
         <a class="btn" href="#/sheets">أوراق الدعم 🧩</a>
         <a class="btn" href="#/notes">كل المذكرات ⭐</a>
       </div>`,
+  });
+
+  app.querySelectorAll('[data-day]').forEach((btn) => {
+    btn.onclick = () => {
+      homeDay = Number(btn.dataset.day);
+      viewHome();
+    };
   });
 
   app.querySelectorAll('[data-week]').forEach((btn) => {
