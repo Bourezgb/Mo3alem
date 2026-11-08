@@ -22,10 +22,10 @@ function profileOf(profile) {
 }
 
 /** الصفحة بكاملها: رأس رسمي، عنوان، محتوى، وتذييل باسم الأستاذة. */
-function page({ title, subtitle = '', profile, body, landscape = false, fill = false, bare = false }) {
+function page({ title, subtitle = '', profile, body, landscape = false, fill = false, bare = false, mono = false }) {
   const p = profileOf(profile);
   return `
-  <article class="doc${landscape ? ' landscape' : ''}${fill ? ' fill' : ''}">
+  <article class="doc${landscape ? ' landscape' : ''}${fill ? ' fill' : ''}${mono ? ' mono' : ''}">
     <header class="doc-head">
       <div class="org">
         <p class="ministry">${esc(p.district)}</p>
@@ -81,7 +81,7 @@ export function noteDoc(n, profile) {
         <span>توقيع الأستاذة: ..........................</span>
       </div>
     </div>`;
-  return page({ title: 'مذكرة يومية', profile, body, fill: true, bare: true });
+  return page({ title: 'مذكرة يومية', profile, body, fill: true, bare: true, mono: true });
 }
 
 export function worksheetDoc(s, profile) {

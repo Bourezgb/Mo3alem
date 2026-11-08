@@ -370,3 +370,13 @@ details > summary h2 { display: inline; margin: 0; }
 .note-sheet .phases td.ph { font-size: 17px; }
 .note-head p, .note-objective { font-size: 15px; }
 .note-sheet .sign { justify-content: flex-start; }
+
+/* المذكرة المطبوعة: أبيض وأسود فقط */
+.doc.mono, .doc.mono * {
+  color: #000 !important; background: #fff !important; border-color: #000 !important;
+  box-shadow: none !important; text-shadow: none !important;
+}
+.doc.mono th, .doc.mono td { border: 1px solid #000 !important; }
+.doc.mono .note-head, .doc.mono .note-side, .doc.mono .note-objective { border: 1px solid #000 !important; }
+.doc.mono .note-left { border-right: 1px solid #000 !important; }
+.doc.mono .phases tbody tr:nth-child(even) td { background: #fff !important; }
