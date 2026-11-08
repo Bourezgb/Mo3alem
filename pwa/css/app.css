@@ -343,3 +343,22 @@ details > summary h2 { display: inline; margin: 0; }
 .appx { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px dashed rgba(127,127,127,.35); }
 .appx small { display: block; color: var(--muted); }
 .appx-actions { display: flex; gap: 6px; flex: none; }
+
+/* ---------- المذكرة: الشكل الرسمي المعتمد ---------- */
+.note-sheet { flex: 1; display: flex; flex-direction: column; }
+.note-head {
+  display: flex; justify-content: space-between; gap: 12px;
+  border: 1.5px solid #3d2c4a; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+}
+.note-head p { margin: 2px 0; font-size: 13.5px; }
+.note-head span { font-weight: 700; color: #2b1f36; }
+.note-right { flex: 1; }
+.note-left { width: 34%; border-right: 1px solid #9a8aa6; padding-right: 10px; }
+.note-objective {
+  border: 1px solid #9a8aa6; border-radius: 6px; padding: 6px 10px; margin: 0 0 8px; font-size: 13.5px;
+}
+.note-objective span { font-weight: 700; }
+.note-sheet .phases th:first-child, .note-sheet .phases td.ph { width: 14%; }
+.note-sheet .phases th:nth-child(2), .note-sheet .phases td:nth-child(2) { width: 52%; }
+.note-sheet .phases td.ph { font-weight: 700; text-align: center; vertical-align: middle; background: #faf7fb; }
+.note-sheet .sign { margin-top: 12px; }
