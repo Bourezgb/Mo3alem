@@ -362,3 +362,11 @@ details > summary h2 { display: inline; margin: 0; }
 .note-sheet .phases th:nth-child(2), .note-sheet .phases td:nth-child(2) { width: 52%; }
 .note-sheet .phases td.ph { font-weight: 700; text-align: center; vertical-align: middle; background: #faf7fb; }
 .note-sheet .sign { margin-top: 12px; }
+
+/* المذكرة: الجدول بحجم الورقة كاملة وخط أكبر */
+.doc.fill { min-height: 272mm; }
+.note-sheet .phases th, .note-sheet .phases td { font-size: 16px; line-height: 1.9; }
+.note-sheet .phases th { font-size: 16px; }
+.note-sheet .phases td.ph { font-size: 17px; }
+.note-head p, .note-objective { font-size: 15px; }
+.note-sheet .sign { justify-content: flex-start; }

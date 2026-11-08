@@ -22,7 +22,7 @@ function profileOf(profile) {
 }
 
 /** الصفحة بكاملها: رأس رسمي، عنوان، محتوى، وتذييل باسم الأستاذة. */
-function page({ title, subtitle = '', profile, body, landscape = false, fill = false }) {
+function page({ title, subtitle = '', profile, body, landscape = false, fill = false, bare = false }) {
   const p = profileOf(profile);
   return `
   <article class="doc${landscape ? ' landscape' : ''}${fill ? ' fill' : ''}">
@@ -38,13 +38,13 @@ function page({ title, subtitle = '', profile, body, landscape = false, fill = f
         <p>${esc(LEVEL)}</p>
       </div>
     </header>
-    <h1 class="doc-title">${esc(title)}</h1>
-    ${subtitle ? `<p class="doc-sub">${esc(subtitle)}</p>` : ''}
+    ${bare ? '' : `<h1 class="doc-title">${esc(title)}</h1>`}
+    ${!bare && subtitle ? `<p class="doc-sub">${esc(subtitle)}</p>` : ''}
     ${body}
-    <footer class="doc-foot">
+    ${bare ? '' : `<footer class="doc-foot">
       <span>الأستاذة: ${esc(p.teacher)}</span>
       <span>${esc(title)}</span>
-    </footer>
+    </footer>`}
   </article>`;
 }
 
@@ -79,10 +79,9 @@ export function noteDoc(n, profile) {
       </div>
       <div class="sign">
         <span>توقيع الأستاذة: ..........................</span>
-        <span>ملاحظة المدير(ة): ..........................</span>
       </div>
     </div>`;
-  return page({ title: 'مذكرة يومية', profile, body, fill: true });
+  return page({ title: 'مذكرة يومية', profile, body, fill: true, bare: true });
 }
 
 export function worksheetDoc(s, profile) {
