@@ -9,6 +9,7 @@ import { saveData, exportBackup, readBackupFile, requestPersistence } from './st
 import { checkIndicators, getKey, setKey, deleteKey } from './gemini.js';
 import { esc, noteDoc, worksheetDoc, timetableDoc } from './print.js';
 import { getTheme, setTheme } from './theme.js';
+import { putPdf, getPdf, deletePdf } from './appendix.js';
 
 const app = document.getElementById('app');
 const modal = document.getElementById('modal');
@@ -116,22 +117,23 @@ function viewHome() {
   const occ = inWeek(plan, w);
   const sheets = data.sheets.filter((s) => s.week === w);
   const teaching = status === 'study' || status === 'integration';
+  const dash = data.dashboards[w] ?? { wins: '', difficulties: '', nextWeek: '', general: '' };
 
   if (homeDay === null) {
     const today = new Date().getDay();
     homeDay = today <= 4 ? today : 0;
   }
 
-  let slots;
+  let lessons;
   if (!occ.length) {
-    slots = '<p>القالب فارغ. أضيفي الحصص من شاشة الجدول.</p>';
+    lessons = '<p>القالب فارغ. أضيفي الحصص من شاشة الجدول.</p>';
   } else if (!teaching) {
-    slots = `<p>${status === 'paused'
+    lessons = `<p>${status === 'paused'
       ? 'أسبوع متوقف، لا تُولَّد فيه حصص.'
       : 'أسبوع تقويم، تتوقف فيه تحضيرات الدروس.'}</p>`;
   } else {
     const dayItems = occ.filter((o) => o.day === homeDay);
-    slots = `
+    lessons = `
       <div class="day-tabs">
         ${WEEKDAYS.map((d, i) => {
           const n = occ.filter((o) => o.day === i && o.state === 'lesson').length;
@@ -147,6 +149,8 @@ function viewHome() {
       </div>`;
   }
 
+  const appendixCount = (data.appendix || []).length;
+
   page({
     title: '🌸 مكتب المعلم',
     active: 'home',
@@ -157,14 +161,21 @@ function viewHome() {
         <button class="round" data-week="1" ${w >= TOTAL_WEEKS ? 'disabled' : ''} aria-label="الأسبوع التالي">+</button>
       </section>
 
-      <section class="card butter">
-        <h2>🎈 حالة الأسبوع: ${WEEK_STATUS_LABELS[status]}</h2>
+      <section class="card blue">
+        <h2>🎛️ لوحة القيادة</h2>
+        <p class="muted">${WEEK_STATUS_LABELS[status]}</p>
         ${plan.warnings.map((x) => `<p class="warn">⚠️ ${esc(x)}</p>`).join('')}
+        ${lessons}
       </section>
 
-      <section class="card blue">
-        <h2>📅 حصص الأسبوع</h2>
-        ${slots}
+      <section class="card butter">
+        <h2>✏️ لوحة الأسبوع القابلة للتعديل</h2>
+        <p class="muted">تُملأ عادةً في عطلة نهاية الأسبوع، وتُحفظ لكل أسبوع على حدة.</p>
+        <label class="field">إنجازات الأسبوع<textarea id="d-wins" rows="3">${esc(dash.wins)}</textarea></label>
+        <label class="field">صعوبات تحتاج دعماً<textarea id="d-difficulties" rows="3">${esc(dash.difficulties)}</textarea></label>
+        <label class="field">مهام الأسبوع القادم<textarea id="d-next" rows="3">${esc(dash.nextWeek)}</textarea></label>
+        <label class="field">ملاحظات عامة<textarea id="d-general" rows="3">${esc(dash.general)}</textarea></label>
+        <button class="btn primary block" id="d-save">حفظ لوحة الأسبوع</button>
       </section>
 
       <section class="card lavender">
@@ -175,6 +186,12 @@ function viewHome() {
       <section class="card mint">
         <h2>⭐ المذكرات</h2>
         <p>عدد المذكرات المحفوظة: ${data.notes.length}</p>
+      </section>
+
+      <section class="card pink">
+        <h2>📚 الملاحق</h2>
+        <p>الكتب المدرسية بصيغة PDF: ${appendixCount} ملف. تُستعمل مرجعاً عند إعداد المذكرات.</p>
+        <a class="btn block" href="#/appendix">فتح الملاحق</a>
       </section>
 
       <div class="actions">
@@ -199,6 +216,16 @@ function viewHome() {
       if (save()) viewHome();
     };
   });
+
+  document.getElementById('d-save').onclick = () => {
+    data.dashboards[w] = {
+      wins: document.getElementById('d-wins').value.trim(),
+      difficulties: document.getElementById('d-difficulties').value.trim(),
+      nextWeek: document.getElementById('d-next').value.trim(),
+      general: document.getElementById('d-general').value.trim(),
+    };
+    if (save()) toast('تم حفظ لوحة الأسبوع');
+  };
 }
 
 // ---------- الأسبوع ----------
@@ -464,6 +491,91 @@ function viewSheetNew() {
   };
 }
 
+// ---------- الملاحق (الكتب المدرسية PDF) ----------
+
+function viewAppendix() {
+  const items = [...(data.appendix || [])].sort((a, b) => b.addedAt.localeCompare(a.addedAt));
+  const subjects = subjectsOf(data);
+  page({
+    title: '📚 الملاحق',
+    active: 'home',
+    back: '#/home',
+    body: `
+      <section class="card blue">
+        <h2>إضافة كتاب (PDF)</h2>
+        <p class="muted">تُحفظ الملفات على هذا الهاتف، ولا تدخل في ملف النسخة الاحتياطية.</p>
+        <label class="field">العنوان<input id="ap-title" placeholder="مثال: كتاب القراءة، الجزء الأول"></label>
+        <label class="field">المادة
+          <select id="ap-subject">
+            <option value="">بدون مادة</option>
+            ${subjects.map((s) => `<option>${esc(s)}</option>`).join('')}
+          </select>
+        </label>
+        <label class="field">ملف PDF<input id="ap-file" type="file" accept="application/pdf"></label>
+        <button class="btn primary block" id="ap-add">حفظ الملف</button>
+      </section>
+
+      <section class="card mint">
+        <h2>الكتب المحفوظة (${items.length})</h2>
+        ${items.length ? items.map((a) => `
+          <div class="appx">
+            <div>
+              <strong>${esc(a.title)}</strong>
+              <small>${esc(a.subject || 'بدون مادة')} · ${(a.size / 1048576).toFixed(1)} MB</small>
+            </div>
+            <div class="appx-actions">
+              <button class="btn small" data-open="${a.id}">فتح</button>
+              <button class="btn small danger" data-rm="${a.id}">حذف</button>
+            </div>
+          </div>`).join('') : '<p class="muted">لا توجد كتب بعد.</p>'}
+      </section>`,
+  });
+
+  document.getElementById('ap-add').onclick = async () => {
+    const title = document.getElementById('ap-title').value.trim();
+    const file = document.getElementById('ap-file').files[0];
+    if (!title) return toast('اكتبي عنوان الكتاب');
+    if (!file) return toast('اختاري ملف PDF');
+    try {
+      const id = newId();
+      await putPdf(id, file);
+      data.appendix.push({
+        id,
+        title,
+        subject: document.getElementById('ap-subject').value,
+        size: file.size,
+        addedAt: new Date().toISOString(),
+      });
+      if (save()) {
+        toast('تم حفظ الكتاب');
+        viewAppendix();
+      }
+    } catch {
+      toast('تعذّر حفظ الملف على هذا المتصفح');
+    }
+  };
+
+  app.querySelectorAll('[data-open]').forEach((btn) => {
+    btn.onclick = async () => {
+      const blob = await getPdf(btn.dataset.open).catch(() => null);
+      if (!blob) return toast('الملف غير موجود على هذا الهاتف');
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (!win) location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    };
+  });
+
+  app.querySelectorAll('[data-rm]').forEach((btn) => {
+    btn.onclick = async () => {
+      if (!confirm('حذف هذا الكتاب من الهاتف؟')) return;
+      await deletePdf(btn.dataset.rm).catch(() => {});
+      data.appendix = data.appendix.filter((a) => a.id !== btn.dataset.rm);
+      if (save()) viewAppendix();
+    };
+  });
+}
+
 // ---------- المذكرات ----------
 
 function viewNotes() {
@@ -546,7 +658,7 @@ function viewNoteEdit(id) {
 
       <section class="card blue">
         <h2>🎈 جانب المذكرة</h2>
-        ${field('رقم المذكرة', 'noteNumber', n.noteNumber)}
+        ${field('الأسبوع رقم', 'noteNumber', n.noteNumber)}
         <label class="field">المستوى<input value="${LEVEL}" disabled></label>
         ${field('الوسائل', 'resources', n.resources, 2)}
         ${field('المدة الزمنية', 'duration', n.duration)}
@@ -724,6 +836,7 @@ function route() {
     case 'notes': return viewNotes();
     case 'note': return viewNoteEdit(arg ?? 'new');
     case 'settings': return viewSettings();
+    case 'appendix': return viewAppendix();
     default: return viewHome();
   }
 }

@@ -164,6 +164,8 @@ export function emptyData() {
   return {
     profile: { ...DEFAULT_PROFILE },
     templateSeeded: true,
+    dashboards: {},
+    appendix: [],
     notes: [],
     template: seedTemplate(),
     curriculum: seedCurriculum(),
@@ -183,6 +185,8 @@ export function normalize(raw) {
     && (!Array.isArray(raw.template) || raw.template.length === 0);
   const data = {
     templateSeeded: true,
+    dashboards: raw.dashboards && typeof raw.dashboards === 'object' ? raw.dashboards : {},
+    appendix: Array.isArray(raw.appendix) ? raw.appendix : [],
     profile: { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) },
     notes: Array.isArray(raw.notes) ? raw.notes : base.notes,
     template: needsSeed ? seedTemplate() : (Array.isArray(raw.template) ? raw.template : []),
