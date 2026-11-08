@@ -2,7 +2,7 @@
 
 import {
   TOTAL_WEEKS, WEEKDAYS, DURATIONS, WEEK_STATUSES, WEEK_STATUS_LABELS, PHASE_NAMES, LEVEL,
-  statusOf, lostIn, subjectsOf, newId, emptyData, seedTemplate,
+  statusOf, lostIn, subjectsOf, newId, emptyData, seedTemplate, seedCurriculum,
 } from './model.js';
 import { buildPlan, inWeek } from './scheduler.js';
 import { saveData, exportBackup, readBackupFile, requestPersistence } from './store.js';
@@ -288,7 +288,7 @@ function viewTimetable() {
       </section>
 
       <button class="btn block" id="tt-preview">معاينة الجدول PDF</button>
-      <button class="btn block danger" id="tt-reset">استعادة القالب الأصلي من استعمال الزمن</button>`,
+      <button class="btn block danger" id="tt-reset">استعادة القالب والمنهج الأوليين</button>`,
   });
 
   document.getElementById('slot-form').onsubmit = (e) => {
@@ -324,8 +324,9 @@ function viewTimetable() {
   document.getElementById('tt-preview').onclick = () => preview(timetableDoc(data));
 
   document.getElementById('tt-reset').onclick = () => {
-    if (!confirm('سيستبدل القالب الحالي بالقالب الأصلي (30 حصة). متابعة؟')) return;
+    if (!confirm('سيستبدل القالب والمنهج الحاليين بالأصليين. متابعة؟')) return;
     data.template = seedTemplate();
+    data.curriculum = seedCurriculum();
     if (save()) {
       toast('تم استعادة القالب الأصلي');
       viewTimetable();
