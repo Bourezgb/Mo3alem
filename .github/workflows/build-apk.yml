@@ -22,6 +22,7 @@ jobs:
       - name: Generate Android scaffolding
         run: |
           flutter create --platforms=android --org com.bourezg --project-name mo3alem_nihad .
+          rm -f test/widget_test.dart
 
       - name: Set minSdk for secure storage
         run: |
