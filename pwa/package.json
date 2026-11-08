@@ -1,0 +1,8 @@
+{
+  "name": "mo3alem-pwa",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/scheduler.test.mjs"
+  }
+}

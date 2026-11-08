@@ -1,0 +1,69 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { buildPlan, inWeek } from '../js/scheduler.js';
+import { emptyData } from '../js/model.js';
+
+function sample() {
+  const d = emptyData();
+  d.template = [
+    { day: 0, subject: 'عربية', minutes: 60 },
+    { day: 0, subject: 'رياضيات', minutes: 60 },
+    { day: 1, subject: 'عربية', minutes: 60 },
+  ];
+  d.curriculum = { عربية: ['د1', 'د2', 'د3'], رياضيات: ['م1'] };
+  return d;
+}
+
+test('بلا تعطيل: الدروس تُسنَد بالترتيب ولا تتأخر', () => {
+  const plan = buildPlan(sample());
+  const first = plan.occurrences.find(
+    (o) => o.week === 1 && o.subject === 'عربية' && o.state === 'lesson',
+  );
+  assert.equal(first.lessonTitle, 'د1');
+  assert.equal(first.delayed, false);
+});
+
+test('يوم غير دراسي يؤخر درس المادة نفسها فقط', () => {
+  const d = sample();
+  d.lostDays.push({ week: 1, day: 0, reason: '' });
+  const plan = buildPlan(d);
+  const arabic = inWeek(plan, 1).filter((o) => o.subject === 'عربية');
+  assert.equal(arabic[0].state, 'lost');
+  assert.equal(arabic[1].state, 'lesson');
+  assert.equal(arabic[1].lessonTitle, 'د1');
+  assert.equal(arabic[1].delayed, true);
+  const math = inWeek(plan, 1).find((o) => o.subject === 'رياضيات');
+  assert.equal(math.state, 'lost');
+  assert.equal(plan.unplaced['رياضيات'] ?? 0, 0);
+});
+
+test('الأسبوع المتوقف لا تُسنَد فيه حصص', () => {
+  const d = sample();
+  d.weekStatus[2] = 'paused';
+  const plan = buildPlan(d);
+  assert.ok(inWeek(plan, 2).every((o) => o.state === 'unavailable'));
+});
+
+test('يومان ضائعان في الإدماج يُنبَّه إلى إعادة الجدولة', () => {
+  const d = sample();
+  d.weekStatus[9] = 'integration';
+  d.lostDays.push({ week: 9, day: 0, reason: '' }, { week: 9, day: 1, reason: '' });
+  const plan = buildPlan(d);
+  assert.ok(plan.warnings.some((w) => w.includes('بداية الأسبوع التالي')));
+});
+
+test('التقويم المحدد بالتدرج يجمّد الدروس (الأسبوع 13)', () => {
+  const plan = buildPlan(sample());
+  assert.ok(inWeek(plan, 13).every((o) => o.state === 'unavailable'));
+});
+
+test('الدرس لا ينتقل إلى مادة أخرى أبداً', () => {
+  const d = sample();
+  d.lostDays.push({ week: 1, day: 0, reason: '' });
+  const plan = buildPlan(d);
+  for (const o of plan.occurrences) {
+    if (o.state === 'lesson') {
+      assert.ok(d.curriculum[o.subject].includes(o.lessonTitle));
+    }
+  }
+});
