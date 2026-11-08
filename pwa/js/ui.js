@@ -778,6 +778,7 @@ function viewSettings() {
   document.getElementById('s-export').onclick = () => exportBackup(data);
 
   document.getElementById('p-save').onclick = () => {
+    data.profileVersion = 2;
     data.profile = {
       teacher: document.getElementById('p-teacher').value.trim(),
       school: document.getElementById('p-school').value.trim(),
