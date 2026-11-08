@@ -1,8 +1,8 @@
 // الثوابت والنماذج الأساسية. لا يعتمد هذا الملف على المتصفح، فيُختبر بـ Node.
 
 export const TOTAL_WEEKS = 32;
-export const INTEGRATION_WEEKS = [9, 17, 24];
-export const ASSESSMENT_WEEKS = [13, 25, 32];
+export const INTEGRATION_WEEKS = [9, 17, 24, 32];
+export const ASSESSMENT_WEEKS = [13, 25];
 export const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
 export const DURATIONS = [30, 60, 90];
 export const LEVEL = 'الثانية ابتدائي';
@@ -20,6 +20,49 @@ export function defaultWeekStatus(week) {
   if (INTEGRATION_WEEKS.includes(week)) return 'integration';
   if (ASSESSMENT_WEEKS.includes(week)) return 'assessment';
   return 'study';
+}
+
+/** القالب الأسبوعي الأصلي من استعمال الزمن (2026/2027)، مرتب حسب الوقت داخل كل يوم. */
+export const SEED_TEMPLATE = [
+  // الأحد
+  { day: 0, subject: 'فهم المنطوق', minutes: 30 },
+  { day: 0, subject: 'تعبير شفوي', minutes: 30 },
+  { day: 0, subject: 'تربية إسلامية', minutes: 30 },
+  { day: 0, subject: 'تربية فنية', minutes: 30 },
+  { day: 0, subject: 'تربية بدنية', minutes: 60 },
+  { day: 0, subject: 'قراءة', minutes: 60 },
+  { day: 0, subject: 'كتابة', minutes: 30 },
+  { day: 0, subject: 'إملاء', minutes: 30 },
+  // الاثنين
+  { day: 1, subject: 'إنتاج شفوي', minutes: 60 },
+  { day: 1, subject: 'محفوظات', minutes: 30 },
+  { day: 1, subject: 'رياضيات', minutes: 60 },
+  { day: 1, subject: 'تربية إسلامية', minutes: 30 },
+  { day: 1, subject: 'رياضيات', minutes: 30 },
+  { day: 1, subject: 'قراءة', minutes: 60 },
+  { day: 1, subject: 'إملاء', minutes: 30 },
+  // الثلاثاء
+  { day: 2, subject: 'قراءة', minutes: 60 },
+  { day: 2, subject: 'كتابة', minutes: 30 },
+  { day: 2, subject: 'إملاء', minutes: 30 },
+  { day: 2, subject: 'تربية فنية', minutes: 30 },
+  { day: 2, subject: 'تربية إسلامية', minutes: 30 },
+  // الأربعاء
+  { day: 3, subject: 'رياضيات', minutes: 60 },
+  { day: 3, subject: 'تربية فنية', minutes: 30 },
+  { day: 3, subject: 'قراءة', minutes: 60 },
+  { day: 3, subject: 'إملاء', minutes: 30 },
+  { day: 3, subject: 'تربية بدنية', minutes: 60 },
+  { day: 3, subject: 'رياضيات', minutes: 30 },
+  { day: 3, subject: 'محفوظات', minutes: 30 },
+  // الخميس
+  { day: 4, subject: 'رياضيات', minutes: 90 },
+  { day: 4, subject: 'ألعاب رياضياتية', minutes: 30 },
+  { day: 4, subject: 'إدماج', minutes: 60 },
+];
+
+export function seedTemplate() {
+  return SEED_TEMPLATE.map((s) => ({ ...s }));
 }
 
 /** حالة الأسبوع بعد تعديلات المعلمة. */
@@ -43,7 +86,7 @@ export function subjectsOf(data) {
 export function emptyData() {
   return {
     notes: [],
-    template: [],
+    template: seedTemplate(),
     curriculum: {},
     weekStatus: {},
     lostDays: [],
@@ -58,7 +101,7 @@ export function normalize(raw) {
   const base = emptyData();
   const data = {
     notes: Array.isArray(raw.notes) ? raw.notes : base.notes,
-    template: Array.isArray(raw.template) ? raw.template : base.template,
+    template: Array.isArray(raw.template) ? raw.template : seedTemplate(),
     curriculum: raw.curriculum && typeof raw.curriculum === 'object' ? raw.curriculum : base.curriculum,
     weekStatus: raw.weekStatus && typeof raw.weekStatus === 'object' ? raw.weekStatus : base.weekStatus,
     lostDays: Array.isArray(raw.lostDays) ? raw.lostDays : base.lostDays,
