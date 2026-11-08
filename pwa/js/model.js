@@ -17,6 +17,8 @@ export const WEEK_STATUS_LABELS = {
 
 /** الحالة الافتراضية لأسبوع حسب التدرج السنوي. */
 export function defaultWeekStatus(week) {
+  // الأسبوعان الأول والثاني: تثبيت المكتسبات والتقويم التشخيصي، بلا دروس جديدة.
+  if (week <= 2) return 'paused';
   if (INTEGRATION_WEEKS.includes(week)) return 'integration';
   if (ASSESSMENT_WEEKS.includes(week)) return 'assessment';
   return 'study';
