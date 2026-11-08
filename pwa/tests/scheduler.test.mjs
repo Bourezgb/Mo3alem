@@ -81,3 +81,11 @@ test('المنهج الأولي يغطي المواد الأربع ولا يشم
   assert.ok(SEED_CURRICULUM['رياضيات'].length > 15);
   assert.ok(SEED_CURRICULUM['قراءة'].length > 15);
 });
+
+test('بيانات قديمة بقالب فارغ تُملأ مرة واحدة، ولا تُعاد تعبئة قالب فرغته المعلمة عمداً', async () => {
+  const { normalize } = await import('../js/model.js');
+  const old = normalize({ template: [], curriculum: {}, notes: [] });
+  assert.equal(old.template.length, 30);
+  const cleared = normalize({ template: [], templateSeeded: true, notes: [] });
+  assert.equal(cleared.template.length, 0);
+});

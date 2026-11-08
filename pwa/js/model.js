@@ -161,6 +161,7 @@ export const DEFAULT_PROFILE = {
 export function emptyData() {
   return {
     profile: { ...DEFAULT_PROFILE },
+    templateSeeded: true,
     notes: [],
     template: seedTemplate(),
     curriculum: seedCurriculum(),
@@ -175,11 +176,15 @@ export function emptyData() {
 export function normalize(raw) {
   if (!raw || typeof raw !== 'object') throw new Error('ملف البيانات غير صالح');
   const base = emptyData();
+  // بيانات قديمة حُفظت بقالب فارغ قبل إدخال القالب الأصلي: تُملأ مرة واحدة فقط.
+  const needsSeed = raw.templateSeeded !== true
+    && (!Array.isArray(raw.template) || raw.template.length === 0);
   const data = {
+    templateSeeded: true,
     profile: { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) },
     notes: Array.isArray(raw.notes) ? raw.notes : base.notes,
-    template: Array.isArray(raw.template) ? raw.template : seedTemplate(),
-    curriculum: raw.curriculum && typeof raw.curriculum === 'object' && Object.keys(raw.curriculum).length ? raw.curriculum : base.curriculum,
+    template: needsSeed ? seedTemplate() : (Array.isArray(raw.template) ? raw.template : []),
+    curriculum: raw.curriculum && typeof raw.curriculum === 'object' && Object.keys(raw.curriculum).length && !needsSeed ? raw.curriculum : base.curriculum,
     weekStatus: raw.weekStatus && typeof raw.weekStatus === 'object' ? raw.weekStatus : base.weekStatus,
     lostDays: Array.isArray(raw.lostDays) ? raw.lostDays : base.lostDays,
     sheets: Array.isArray(raw.sheets) ? raw.sheets : base.sheets,
