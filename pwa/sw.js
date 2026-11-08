@@ -22,12 +22,14 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))),
-    ),
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+    await self.clients.claim();
+    // أي صفحة مفتوحة بالنسخة القديمة تُعاد تحميلها فوراً بالكود الجديد.
+    const pages = await self.clients.matchAll({ type: 'window' });
+    for (const page of pages) page.navigate(page.url).catch(() => {});
+  })());
 });
 
 // الشبكة أولاً حتى لا تبقى نسخة قديمة من الكود على الهاتف؛ الكاش للعمل دون اتصال فقط.
