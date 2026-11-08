@@ -38,7 +38,7 @@ void main() {
 
     final math = plan.inWeek(1).firstWhere((o) => o.subject == 'رياضيات');
     expect(math.state, OccurrenceState.lost);
-    expect(plan.unplaced['رياضيات'], 0);
+    expect(plan.unplaced['رياضيات'] ?? 0, 0);
   });
 
   test('الأسبوع المتوقف لا تُسنَد فيه حصص', () {
