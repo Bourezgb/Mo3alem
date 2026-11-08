@@ -97,3 +97,11 @@ test('الأسبوعان الأول والثاني متوقفان للتثبيت
   assert.equal(defaultWeekStatus(2), 'paused');
   assert.equal(defaultWeekStatus(3), 'study');
 });
+
+test('بيانات الوثائق: الإصدار الجديد يستبدل القديم مرة واحدة', async () => {
+  const { normalize } = await import('../js/model.js');
+  const old = normalize({ profile: { district: 'قديمة' }, notes: [] });
+  assert.equal(old.profile.district, 'مديرية التربية لولاية تبسة');
+  const kept = normalize({ profileVersion: 2, profile: { district: 'مخصصة' } });
+  assert.equal(kept.profile.district, 'مخصصة');
+});

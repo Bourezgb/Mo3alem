@@ -154,15 +154,19 @@ export function subjectsOf(data) {
 /** بيانات رأس الوثائق المطبوعة. قابلة للتعديل من الإعدادات. */
 export const DEFAULT_PROFILE = {
   teacher: 'درباسي نهاد',
-  school: 'الحاج أحمد سبدو',
-  zone: 'المقاطعة 1: درمام سبدو',
-  district: 'مديرية التربية لولاية تلمسان',
+  school: 'ابتدائية غريبي عامر بن محمد النور 03',
+  zone: 'المقاطعة 28',
+  district: 'مديرية التربية لولاية تبسة',
   year: '2026/2027',
 };
+
+/** رقم نسخة بيانات الوثائق: عند تغييره تُستبدل البيانات المحفوظة بالقيم الجديدة مرة واحدة. */
+const PROFILE_VERSION = 2;
 
 export function emptyData() {
   return {
     profile: { ...DEFAULT_PROFILE },
+    profileVersion: PROFILE_VERSION,
     templateSeeded: true,
     dashboards: {},
     appendix: [],
@@ -187,7 +191,10 @@ export function normalize(raw) {
     templateSeeded: true,
     dashboards: raw.dashboards && typeof raw.dashboards === 'object' ? raw.dashboards : {},
     appendix: Array.isArray(raw.appendix) ? raw.appendix : [],
-    profile: { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) },
+    profile: raw.profileVersion === PROFILE_VERSION
+      ? { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) }
+      : { ...DEFAULT_PROFILE },
+    profileVersion: PROFILE_VERSION,
     notes: Array.isArray(raw.notes) ? raw.notes : base.notes,
     template: needsSeed ? seedTemplate() : (Array.isArray(raw.template) ? raw.template : []),
     curriculum: raw.curriculum && typeof raw.curriculum === 'object' && Object.keys(raw.curriculum).length && !needsSeed ? raw.curriculum : base.curriculum,
