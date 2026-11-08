@@ -49,14 +49,12 @@ jobs:
 
       - name: Build release APK
         run: |
+          flutter build apk --config-only
           sed -i -E 's#distributionUrl=.*#distributionUrl=https\://services.gradle.org/distributions/gradle-9.3.1-all.zip#' android/gradle/wrapper/gradle-wrapper.properties
           grep distributionUrl android/gradle/wrapper/gradle-wrapper.properties
-          for attempt in 1 2 3 4 5; do
-            if flutter build apk --release; then exit 0; fi
-            echo "Attempt $attempt failed, retrying in 60s"
-            sleep 60
-          done
-          exit 1
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
