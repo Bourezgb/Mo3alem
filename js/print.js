@@ -49,46 +49,40 @@ function page({ title, subtitle = '', profile, body, landscape = false, fill = f
 }
 
 export function noteDoc(n, profile) {
-  const phases = n.phases.map((ph, i) => `
+  const phases = n.phases.map((ph) => `
     <tr>
-      <td class="ph ph-${i % 3}">${esc(ph.name)}</td>
+      <td class="ph">${esc(ph.name)}</td>
       <td>${multiline(ph.situations)}</td>
       <td>${multiline(ph.indicators)}</td>
     </tr>`).join('');
   const body = `
-    <div class="note-layout">
-      <div class="note-main">
-        <table class="info">
-          <tr><th>الميدان</th><td>${esc(n.domain)}</td></tr>
-          <tr><th>المقطع التعلمي</th><td>${esc(n.unit)}</td></tr>
-          <tr><th>الهدف التعلمي</th><td>${multiline(n.objective)}</td></tr>
-          <tr><th>الكفاءة المستهدفة</th><td>${multiline(n.competency)}</td></tr>
-        </table>
-        <div class="phases-wrap">
-          <table class="phases">
-            <thead><tr><th>المراحل</th><th>الوضعيات التعلمية</th><th>مؤشرات التقويم</th></tr></thead>
-            <tbody>${phases}</tbody>
-          </table>
+    <div class="note-sheet">
+      <div class="note-head">
+        <div class="note-right">
+          <p><span>المقطع التعلمي:</span> ${esc(n.unit)}</p>
+          <p><span>الميدان:</span> ${esc(n.domain)}</p>
+          <p><span>النشاط:</span> ${esc(n.activity)}</p>
+          <p><span>الموضوع:</span> ${esc(n.topic)}</p>
         </div>
-        <div class="sign">
-          <span>توقيع الأستاذة: ..........................</span>
-          <span>ملاحظة المدير(ة): ..........................</span>
+        <div class="note-left">
+          <p><span>الأسبوع</span> ${esc(n.noteNumber)}</p>
+          <p><span>الحصة</span> ${esc(n.session)}</p>
+          <p><span>المدة</span> ${esc(n.duration)}</p>
         </div>
       </div>
-      <aside class="note-side">
-        <div><span>الأسبوع رقم</span><strong>${esc(n.noteNumber)}</strong></div>
-        <div><span>المستوى</span>${esc(LEVEL)}</div>
-        <div><span>الوسائل</span>${multiline(n.resources)}</div>
-        <div><span>المدة الزمنية</span>${esc(n.duration)}</div>
-      </aside>
+      <p class="note-objective"><span>الهدف التعلمي:</span> ${multiline(n.objective)}</p>
+      <div class="phases-wrap">
+        <table class="phases">
+          <thead><tr><th>المراحل</th><th>الوضعيات التعلمية</th><th>مؤشرات التقويم</th></tr></thead>
+          <tbody>${phases}</tbody>
+        </table>
+      </div>
+      <div class="sign">
+        <span>توقيع الأستاذة: ..........................</span>
+        <span>ملاحظة المدير(ة): ..........................</span>
+      </div>
     </div>`;
-  return page({
-    title: 'مذكرة يومية',
-    subtitle: n.unit ? `المقطع: ${n.unit}` : '',
-    profile,
-    body,
-    fill: true,
-  });
+  return page({ title: 'مذكرة يومية', profile, body, fill: true });
 }
 
 export function worksheetDoc(s, profile) {

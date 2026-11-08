@@ -612,6 +612,9 @@ function readNoteForm(base) {
     createdAt: base.createdAt,
     domain: v('domain'),
     unit: v('unit'),
+    activity: v('activity'),
+    topic: v('topic'),
+    session: v('session'),
     objective: v('objective'),
     competency: v('competency'),
     noteNumber: v('noteNumber'),
@@ -632,7 +635,7 @@ function viewNoteEdit(id) {
   const n = existing ?? {
     id: newId(),
     createdAt: new Date().toISOString(),
-    domain: '', unit: '', objective: '', competency: '',
+    domain: '', unit: '', activity: '', topic: '', session: '', objective: '', competency: '',
     noteNumber: '', resources: '', duration: '',
     phases: PHASE_NAMES.map((name) => ({ name, situations: '', indicators: '' })),
   };
@@ -652,6 +655,9 @@ function viewNoteEdit(id) {
         <h2>🌸 رأس المذكرة</h2>
         ${field('الميدان', 'domain', n.domain)}
         ${field('المقطع التعلمي', 'unit', n.unit)}
+        ${field('النشاط', 'activity', n.activity ?? '')}
+        ${field('الموضوع', 'topic', n.topic ?? '')}
+        ${field('الحصة', 'session', n.session ?? '')}
         ${field('الهدف التعلمي', 'objective', n.objective, 2)}
         ${field('الكفاءة المستهدفة', 'competency', n.competency, 2)}
       </section>
