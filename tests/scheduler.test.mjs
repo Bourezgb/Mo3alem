@@ -11,6 +11,7 @@ function sample() {
     { day: 1, subject: 'عربية', minutes: 60 },
   ];
   d.curriculum = { عربية: ['د1', 'د2', 'د3'], رياضيات: ['م1'] };
+  d.weekStatus = { 1: 'study', 2: 'study' };
   return d;
 }
 
@@ -88,4 +89,11 @@ test('بيانات قديمة بقالب فارغ تُملأ مرة واحدة،
   assert.equal(old.template.length, 30);
   const cleared = normalize({ template: [], templateSeeded: true, notes: [] });
   assert.equal(cleared.template.length, 0);
+});
+
+test('الأسبوعان الأول والثاني متوقفان للتثبيت والتقويم التشخيصي', async () => {
+  const { defaultWeekStatus } = await import('../js/model.js');
+  assert.equal(defaultWeekStatus(1), 'paused');
+  assert.equal(defaultWeekStatus(2), 'paused');
+  assert.equal(defaultWeekStatus(3), 'study');
 });
