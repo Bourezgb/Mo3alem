@@ -47,7 +47,7 @@ Future<Uint8List> buildLessonNotePdf(LessonNote note) async {
         children: [
           pw.Text(
             'مذكرة يومية',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             textAlign: pw.TextAlign.center,
           ),
           pw.SizedBox(height: 12),
@@ -102,7 +102,7 @@ Future<Uint8List> buildWorksheetPdf(SupportSheet sheet) async {
         children: [
           pw.Text(
             'ورقة دعم · ${sheet.subject}',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             textAlign: pw.TextAlign.center,
           ),
           pw.SizedBox(height: 6),
@@ -114,12 +114,12 @@ Future<Uint8List> buildWorksheetPdf(SupportSheet sheet) async {
           pw.Text('الاسم واللقب: ........................................'),
           pw.SizedBox(height: 12),
           pw.Text('المهارات المستهدفة',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
           for (final s in sheet.weakSkills) pw.Text('• $s'),
           pw.SizedBox(height: 12),
           pw.Text('تمارين الدعم',
-              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
           for (var i = 0; i < sheet.exercises.length; i++)
             pw.Padding(
@@ -163,7 +163,7 @@ Future<Uint8List> buildTimetablePdf(AppData data) async {
         children: [
           pw.Text(
             'الجدول الأسبوعي',
-            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
             textAlign: pw.TextAlign.center,
           ),
           pw.SizedBox(height: 12),
