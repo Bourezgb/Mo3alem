@@ -321,7 +321,7 @@ function viewTimetable() {
     };
   });
 
-  document.getElementById('tt-preview').onclick = () => preview(timetableDoc(data));
+  document.getElementById('tt-preview').onclick = () => preview(timetableDoc(data, data.profile));
 
   document.getElementById('tt-reset').onclick = () => {
     if (!confirm('سيستبدل القالب والمنهج الحاليين بالأصليين. متابعة؟')) return;
@@ -359,7 +359,7 @@ function viewSheets() {
   app.querySelectorAll('[data-pdf]').forEach((btn) => {
     btn.onclick = () => {
       const s = data.sheets.find((x) => x.id === btn.dataset.pdf);
-      if (s) preview(worksheetDoc(s));
+      if (s) preview(worksheetDoc(s, data.profile));
     };
   });
   app.querySelectorAll('[data-remove]').forEach((btn) => {
@@ -443,7 +443,7 @@ function viewNotes() {
   app.querySelectorAll('[data-pdf]').forEach((btn) => {
     btn.onclick = () => {
       const n = data.notes.find((x) => x.id === btn.dataset.pdf);
-      if (n) preview(noteDoc(n));
+      if (n) preview(noteDoc(n, data.profile));
     };
   });
 }
@@ -553,7 +553,7 @@ function viewNoteEdit(id) {
     }
   };
 
-  document.getElementById('n-pdf').onclick = () => preview(noteDoc(readNoteForm(n)));
+  document.getElementById('n-pdf').onclick = () => preview(noteDoc(readNoteForm(n), data.profile));
 
   const del = document.getElementById('n-delete');
   if (del) {
@@ -584,6 +584,16 @@ function viewSettings() {
         </label>
       </section>
 
+      <section class="card blue">
+        <h2>🏫 بيانات الوثائق المطبوعة</h2>
+        <label class="field">اسم الأستاذة<input id="p-teacher" value="${esc(data.profile.teacher)}"></label>
+        <label class="field">المدرسة<input id="p-school" value="${esc(data.profile.school)}"></label>
+        <label class="field">المقاطعة<input id="p-zone" value="${esc(data.profile.zone)}"></label>
+        <label class="field">مديرية التربية<input id="p-district" value="${esc(data.profile.district)}"></label>
+        <label class="field">السنة الدراسية<input id="p-year" value="${esc(data.profile.year)}"></label>
+        <button class="btn primary block" id="p-save">حفظ بيانات الوثائق</button>
+      </section>
+
       <section class="card pink">
         <h2>💾 النسخ الاحتياطي</h2>
         <p>تُصدَّر بياناتك إلى ملف على الهاتف. احفظيه في مكان آمن.</p>
@@ -609,6 +619,17 @@ function viewSettings() {
   document.getElementById('s-theme').onchange = (e) => setTheme(e.target.value);
 
   document.getElementById('s-export').onclick = () => exportBackup(data);
+
+  document.getElementById('p-save').onclick = () => {
+    data.profile = {
+      teacher: document.getElementById('p-teacher').value.trim(),
+      school: document.getElementById('p-school').value.trim(),
+      zone: document.getElementById('p-zone').value.trim(),
+      district: document.getElementById('p-district').value.trim(),
+      year: document.getElementById('p-year').value.trim(),
+    };
+    if (save()) toast('تم حفظ بيانات الوثائق');
+  };
 
   document.getElementById('s-import').onchange = async (e) => {
     const file = e.target.files[0];

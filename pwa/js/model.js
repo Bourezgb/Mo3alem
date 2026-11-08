@@ -149,8 +149,18 @@ export function subjectsOf(data) {
   return seen;
 }
 
+/** بيانات رأس الوثائق المطبوعة. قابلة للتعديل من الإعدادات. */
+export const DEFAULT_PROFILE = {
+  teacher: 'درباسي نهاد',
+  school: 'الحاج أحمد سبدو',
+  zone: 'المقاطعة 1: درمام سبدو',
+  district: 'مديرية التربية لولاية تلمسان',
+  year: '2026/2027',
+};
+
 export function emptyData() {
   return {
+    profile: { ...DEFAULT_PROFILE },
     notes: [],
     template: seedTemplate(),
     curriculum: seedCurriculum(),
@@ -166,6 +176,7 @@ export function normalize(raw) {
   if (!raw || typeof raw !== 'object') throw new Error('ملف البيانات غير صالح');
   const base = emptyData();
   const data = {
+    profile: { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) },
     notes: Array.isArray(raw.notes) ? raw.notes : base.notes,
     template: Array.isArray(raw.template) ? raw.template : seedTemplate(),
     curriculum: raw.curriculum && typeof raw.curriculum === 'object' && Object.keys(raw.curriculum).length ? raw.curriculum : base.curriculum,
