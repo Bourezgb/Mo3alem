@@ -207,20 +207,70 @@ summary { font-weight: 700; cursor: pointer; min-height: 48px; display: flex; al
 .toast[hidden] { display: none; }
 
 /* ---------- الطباعة ---------- */
-.doc { color: #111; background: #fff; font-size: 14px; line-height: 1.7; }
-.doc h1 { font-size: 20px; text-align: center; margin: 0 0 12px; color: #111; }
-.doc h2 { font-size: 16px; color: #111; margin: 14px 0 6px; }
-.doc .center { text-align: center; }
-.doc .kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 12px; }
-.doc .kv dt { font-weight: 700; }
-.doc .kv dd { margin: 0; }
-.doc table.grid { width: 100%; border-collapse: collapse; }
-.doc table.grid th, .doc table.grid td { border: 1px solid #333; padding: 6px; vertical-align: top; text-align: right; }
-.doc table.grid thead th { background: #FFF3BF; }
-.doc ul, .doc ol { padding-right: 22px; }
-.doc ol.plain { list-style: decimal; }
+.doc {
+  color: #1d1d1f; background: #fff; font-size: 13.5px; line-height: 1.65;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.doc.landscape { page: wide; }
+@page { size: A4; margin: 12mm; }
+@page wide { size: A4 landscape; margin: 10mm; }
 
-@page { size: A4; margin: 16mm; }
+.doc-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  border-bottom: 2px solid #3d2c4a; padding-bottom: 8px; margin-bottom: 10px;
+}
+.doc-head p { margin: 0; font-size: 12.5px; }
+.doc-head .ministry { font-weight: 700; font-size: 13.5px; }
+.doc-head .year {
+  text-align: center; border: 1.5px solid #3d2c4a; border-radius: 10px; padding: 6px 14px; min-width: 150px;
+}
+.doc-head .year strong { display: block; font-size: 16px; direction: ltr; }
+.doc-title { text-align: center; font-size: 20px; margin: 6px 0 2px; color: #2b1f36; }
+.doc-sub { text-align: center; color: #555; margin: 0 0 12px; font-size: 13px; }
+.doc-sub.left { text-align: right; }
+.doc h2 {
+  font-size: 15px; color: #3d2c4a; margin: 14px 0 6px;
+  border-right: 4px solid #ec8fb0; padding-right: 8px; break-after: avoid;
+}
+.doc table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+.doc table.narrow { width: 70%; }
+.doc th, .doc td { border: 1px solid #9a8aa6; padding: 6px 8px; vertical-align: top; text-align: right; }
+.doc thead { display: table-header-group; }
+.doc thead th { background: #3d2c4a; color: #fff; font-weight: 700; }
+.doc tr { break-inside: avoid; }
+.doc tbody tr:nth-child(even) td { background: #faf7fb; }
+.doc table.info th { background: #f1ebf5; color: #2b1f36; width: 16%; }
+.doc table.info td { width: 34%; }
+.doc .ph { font-weight: 700; text-align: center; width: 14%; }
+.doc .ph-0 { background: #fbe3ee; }
+.doc .ph-1 { background: #dff4ea; }
+.doc .ph-2 { background: #e3ecfb; }
+.doc .num { text-align: center; }
+.doc .chip {
+  display: inline-block; background: #f1ebf5; border: 1px solid #c9b8d4; border-radius: 6px;
+  padding: 2px 7px; margin: 2px;
+}
+.doc .chip small { color: #666; }
+.doc .sign { display: flex; justify-content: space-between; margin-top: 26px; font-size: 13px; }
+.doc .fields { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px 16px; margin-bottom: 8px; }
+.doc .fields div { border-bottom: 1px solid #555; padding: 4px 2px; font-size: 13px; }
+.doc .fields span { color: #555; font-size: 12px; }
+.doc .checks { list-style: none; padding: 0; margin: 0; }
+.doc .checks li { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.doc .box { width: 14px; height: 14px; border: 1.5px solid #3d2c4a; border-radius: 3px; flex: none; }
+.doc ul.ex { list-style: none; padding: 0; margin: 0; }
+.doc ul.ex li {
+  border: 1px solid #d9cfe0; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; break-inside: avoid;
+}
+.doc ul.ex .n {
+  display: inline-block; min-width: 22px; height: 22px; line-height: 22px; text-align: center;
+  background: #3d2c4a; color: #fff; border-radius: 50%; font-size: 12px; margin-left: 4px;
+}
+.doc ul.ex .line { border-bottom: 1px dashed #9a8aa6; height: 22px; margin-top: 8px; }
+.doc-foot {
+  margin-top: 14px; border-top: 1px solid #9a8aa6; padding-top: 6px;
+  display: flex; justify-content: space-between; font-size: 11.5px; color: #555;
+}
 
 @media print {
   body { background: #fff; padding: 0; }
