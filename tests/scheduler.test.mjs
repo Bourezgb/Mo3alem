@@ -75,3 +75,9 @@ test('القالب الأصلي يطابق استعمال الزمن: 30 حصة�
   assert.deepEqual(INTEGRATION_WEEKS, [9, 17, 24, 32]);
   assert.deepEqual(ASSESSMENT_WEEKS, [13, 25]);
 });
+
+test('المنهج الأولي يغطي المواد الأربع ولا يشمل أسابيع الإدماج', async () => {
+  const { SEED_CURRICULUM } = await import('../js/model.js');
+  assert.ok(SEED_CURRICULUM['رياضيات'].length > 15);
+  assert.ok(SEED_CURRICULUM['قراءة'].length > 15);
+});
