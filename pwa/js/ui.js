@@ -8,6 +8,7 @@ import { buildPlan, inWeek } from './scheduler.js';
 import { saveData, exportBackup, readBackupFile, requestPersistence } from './store.js';
 import { checkIndicators, getKey, setKey, deleteKey } from './gemini.js';
 import { esc, noteDoc, worksheetDoc, timetableDoc } from './print.js';
+import { getTheme, setTheme } from './theme.js';
 
 const app = document.getElementById('app');
 const modal = document.getElementById('modal');
@@ -561,6 +562,17 @@ function viewSettings() {
     title: '🦋 الإعدادات',
     active: 'settings',
     body: `
+      <section class="card blue">
+        <h2>🌓 المظهر</h2>
+        <label class="field">الوضع
+          <select id="s-theme">
+            <option value="system" ${getTheme() === 'system' ? 'selected' : ''}>حسب الهاتف</option>
+            <option value="light" ${getTheme() === 'light' ? 'selected' : ''}>فاتح ☀️</option>
+            <option value="dark" ${getTheme() === 'dark' ? 'selected' : ''}>ليلي 🌙</option>
+          </select>
+        </label>
+      </section>
+
       <section class="card pink">
         <h2>💾 النسخ الاحتياطي</h2>
         <p>تُصدَّر بياناتك إلى ملف على الهاتف. احفظيه في مكان آمن.</p>
@@ -582,6 +594,8 @@ function viewSettings() {
         <p class="muted">يُحفظ على هذا المتصفح فقط، ولا يُرفع إلى أي مكان.</p>
       </section>`,
   });
+
+  document.getElementById('s-theme').onchange = (e) => setTheme(e.target.value);
 
   document.getElementById('s-export').onclick = () => exportBackup(data);
 

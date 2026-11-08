@@ -1,5 +1,5 @@
 // تخزين التطبيق للعمل دون اتصال. نسخة جديدة من الملفات = رقم كاش جديد.
-const CACHE = "mo3alem-v2";
+const CACHE = "mo3alem-v3";
 const SHELL = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const SHELL = [
   './js/store.js',
   './js/gemini.js',
   './js/print.js',
+  './js/theme.js',
 ];
 
 self.addEventListener('install', (event) => {
