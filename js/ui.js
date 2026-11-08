@@ -237,6 +237,14 @@ function viewWeek(w) {
 
 // ---------- الجدول والمنهج ----------
 
+let ttEdit = false;
+const CHIP_CLASSES = ['c-pink', 'c-blue', 'c-mint', 'c-butter', 'c-lav'];
+function chipClass(name) {
+  let h = 0;
+  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return CHIP_CLASSES[h % CHIP_CLASSES.length];
+}
+
 function viewTimetable() {
   const subjects = subjectsOf(data);
 
@@ -245,21 +253,29 @@ function viewTimetable() {
     active: 'timetable',
     body: `
       <section class="card blue">
-        <h2>القالب الأسبوعي</h2>
+        <div class="tt-head">
+          <h2>القالب الأسبوعي</h2>
+          <button class="btn small" id="tt-edit-toggle">${ttEdit ? 'تم' : '✏️ تعديل'}</button>
+        </div>
         ${WEEKDAYS.map((d, i) => {
           const items = data.template.map((s, idx) => ({ s, idx })).filter((x) => x.s.day === i);
-          return `<h3>${d}</h3>` + (items.length
-            ? items.map(({ s, idx }) => `
-                <div class="row">
-                  <span>${esc(s.subject)} · ${s.minutes} د</span>
-                  <button class="btn small danger" data-del="${idx}">حذف</button>
-                </div>`).join('')
-            : '<p class="muted">لا حصص</p>');
+          const total = items.reduce((sum, x) => sum + x.s.minutes, 0);
+          return `
+            <div class="tt-day">
+              <div class="tt-day-name">${d}<small>${items.length} حصص · ${total} د</small></div>
+              <div class="tt-chips">${items.length
+                ? items.map(({ s, idx }) => `
+                    <span class="tt-chip ${chipClass(s.subject)}">
+                      ${esc(s.subject)} <small>${s.minutes} د</small>
+                      ${ttEdit ? `<button class="tt-x" data-del="${idx}" aria-label="حذف">✕</button>` : ''}
+                    </span>`).join('')
+                : '<span class="muted">لا حصص</span>'}</div>
+            </div>`;
         }).join('')}
       </section>
 
-      <section class="card blue">
-        <h2>➕ إضافة حصة</h2>
+      <details class="card blue">
+        <summary><h2>➕ إضافة حصة</h2></summary>
         <form id="slot-form">
           <label class="field">اليوم
             <select name="day">${WEEKDAYS.map((d, i) => `<option value="${i}">${d}</option>`).join('')}</select>
@@ -273,10 +289,10 @@ function viewTimetable() {
           </label>
           <button class="btn primary block" type="submit">إضافة</button>
         </form>
-      </section>
+      </details>
 
-      <section class="card mint">
-        <h2>📚 المنهج</h2>
+      <details class="card mint">
+        <summary><h2>📚 المنهج</h2></summary>
         ${subjects.length
           ? subjects.map((s, i) => `
               <details>
@@ -285,7 +301,7 @@ function viewTimetable() {
                 <button class="btn small" data-curr="${i}">حفظ دروس ${esc(s)}</button>
               </details>`).join('')
           : '<p class="muted">أضيفي حصصاً أولاً لتظهر المواد هنا.</p>'}
-      </section>
+      </details>
 
       <button class="btn block" id="tt-preview">معاينة الجدول PDF</button>
       <button class="btn block danger" id="tt-reset">استعادة القالب والمنهج الأوليين</button>`,
@@ -298,6 +314,11 @@ function viewTimetable() {
     if (!subject) return toast('اكتبي اسم المادة');
     data.template.push({ day: Number(f.get('day')), subject, minutes: Number(f.get('minutes')) });
     if (save()) viewTimetable();
+  };
+
+  document.getElementById('tt-edit-toggle').onclick = () => {
+    ttEdit = !ttEdit;
+    viewTimetable();
   };
 
   app.querySelectorAll('[data-del]').forEach((btn) => {
