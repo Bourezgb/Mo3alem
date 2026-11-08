@@ -1,5 +1,5 @@
 // تخزين التطبيق للعمل دون اتصال. نسخة جديدة من الملفات = رقم كاش جديد.
-const CACHE = 'mo3alem-v1';
+const CACHE = "mo3alem-v2";
 const SHELL = [
   './',
   './index.html',
