@@ -10,6 +10,7 @@ import { checkIndicators, getKey, setKey, deleteKey } from './gemini.js';
 import { esc, noteDoc, worksheetDoc, timetableDoc } from './print.js';
 import { getTheme, setTheme } from './theme.js';
 import { putPdf, getPdf, deletePdf } from './appendix.js';
+import { UNITS, unitOfWeek } from './model.js';
 
 const app = document.getElementById('app');
 const modal = document.getElementById('modal');
@@ -198,6 +199,7 @@ function viewHome() {
         <a class="btn primary" href="#/note/new">مذكرة جديدة 📝</a>
         <a class="btn" href="#/week/${w}">أيام غير دراسية وحالة الأسبوع</a>
         <a class="btn" href="#/timetable">الجدول والمنهج 🗓️</a>
+        <a class="btn" href="#/curriculum">التدرج السنوي 📅</a>
         <a class="btn" href="#/sheets">أوراق الدعم 🧩</a>
         <a class="btn" href="#/notes">كل المذكرات ⭐</a>
       </div>`,
@@ -491,6 +493,64 @@ function viewSheetNew() {
   };
 }
 
+// ---------- التدرج السنوي (متابعة الدروس) ----------
+
+function viewCurriculum() {
+  const plan = buildPlan(data);
+  const done = data.progress;
+  let lessonsTotal = 0;
+  let lessonsDone = 0;
+
+  const weeks = Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1).map((w) => {
+    const status = statusOf(data, w);
+    const unit = unitOfWeek(w);
+    const lessons = inWeek(plan, w).filter((o) => o.state === 'lesson');
+    lessonsTotal += lessons.length;
+    if (done[w]) lessonsDone += lessons.length;
+    const body = lessons.length
+      ? lessons.map((o) => `
+          <div class="cur-row">
+            <span>${esc(o.subject)}</span>
+            <strong>${esc(o.lessonTitle)}${o.delayed ? ' <small>(مُؤجَّل)</small>' : ''}</strong>
+          </div>`).join('')
+      : `<p class="muted">${status === 'paused' ? 'أسبوع متوقف' : status === 'assessment' ? 'أسبوع تقويم' : status === 'integration' ? 'أسبوع إدماج' : 'لا دروس مجدولة'}</p>`;
+    return `
+      <details class="wk ${status}" ${w === data.currentWeek ? 'open' : ''}>
+        <summary>
+          <span class="wk-no">الأسبوع ${w}</span>
+          <span class="wk-unit">${unit ? `المقطع ${unit.no} · ${esc(unit.name)}` : WEEK_STATUS_LABELS[status]}</span>
+          <label class="wk-done" onclick="event.stopPropagation()">
+            <input type="checkbox" data-done="${w}" ${done[w] ? 'checked' : ''}> تم
+          </label>
+        </summary>
+        <div class="wk-body">${body}</div>
+      </details>`;
+  }).join('');
+
+  page({
+    title: '📅 التدرج السنوي',
+    active: 'home',
+    back: '#/home',
+    body: `
+      <section class="card blue">
+        <h2>متابعة الدروس</h2>
+        <p>أُنجز ${lessonsDone} من ${lessonsTotal} درساً مجدولاً.</p>
+        <p class="muted">الأسابيع مفتوحة لعرض الدروس، وعلامة "تم" تحفظ تقدّمكِ.</p>
+      </section>
+      <section class="card mint"><div class="wk-list">${weeks}</div></section>`,
+  });
+
+  app.querySelectorAll('[data-done]').forEach((box) => {
+    box.onchange = () => {
+      const w = box.dataset.done;
+      if (box.checked) data.progress[w] = true;
+      else delete data.progress[w];
+      save();
+      viewCurriculum();
+    };
+  });
+}
+
 // ---------- الملاحق (الكتب المدرسية PDF) ----------
 
 function viewAppendix() {
@@ -610,6 +670,7 @@ function readNoteForm(base) {
   return {
     id: base.id,
     createdAt: base.createdAt,
+    fileId: base.fileId ?? null,
     domain: v('domain'),
     unit: v('unit'),
     activity: v('activity'),
@@ -629,14 +690,47 @@ function readNoteForm(base) {
   };
 }
 
-function viewNoteEdit(id) {
+const BATCH_KEY = 'mo3alem.draftBatch';
+let noteBatch = null;
+
+function loadBatch() {
+  if (noteBatch === null) {
+    try {
+      noteBatch = JSON.parse(localStorage.getItem(BATCH_KEY) || '[]');
+    } catch {
+      noteBatch = [];
+    }
+  }
+  return noteBatch;
+}
+
+function saveBatch() {
+  try {
+    localStorage.setItem(BATCH_KEY, JSON.stringify(noteBatch));
+  } catch {
+    /* المسودة اختيارية */
+  }
+}
+
+function clearBatch() {
+  noteBatch = [];
+  try {
+    localStorage.removeItem(BATCH_KEY);
+  } catch {
+    /* لا شيء */
+  }
+}
+
+function viewNoteEdit(id, carry = null) {
   const existing = id === 'new' ? null : data.notes.find((n) => n.id === id);
   if (id !== 'new' && !existing) return go('#/notes');
+  const batch = id === 'new' ? loadBatch() : [];
   const n = existing ?? {
     id: newId(),
     createdAt: new Date().toISOString(),
-    domain: '', unit: '', activity: '', topic: '', session: '', objective: '', competency: '',
-    noteNumber: '', resources: '', duration: '',
+    domain: carry?.domain ?? '', unit: carry?.unit ?? '', activity: '', topic: '', session: '',
+    objective: '', competency: '',
+    noteNumber: carry?.noteNumber ?? '', resources: '', duration: carry?.duration ?? '',
     phases: PHASE_NAMES.map((name) => ({ name, situations: '', indicators: '' })),
   };
   const field = (label, name, value, rows = 0) => `
@@ -647,10 +741,20 @@ function viewNoteEdit(id) {
     </label>`;
 
   page({
-    title: existing ? '📝 تعديل المذكرة' : '📝 مذكرة جديدة',
+    title: existing ? '📝 تعديل المذكرة' : '📝 مذكرات الملف',
     active: 'notes',
     back: '#/notes',
     body: `
+      ${batch.length ? `
+      <section class="card butter">
+        <h2>📂 في هذا الملف (${batch.length} مذكرة محفوظة مؤقتاً)</h2>
+        ${batch.map((b, i) => `
+          <div class="appx">
+            <div><strong>${esc(b.activity || 'بدون مادة')}</strong><small>${esc(b.topic || '—')}</small></div>
+            <div class="appx-actions"><button class="btn small danger" data-bdel="${i}">حذف</button></div>
+          </div>`).join('')}
+      </section>` : ''}
+
       <section class="card pink">
         <h2>🌸 رأس المذكرة</h2>
         ${field('الميدان', 'domain', n.domain)}
@@ -686,20 +790,55 @@ function viewNoteEdit(id) {
       </section>
 
       <div class="actions">
-        <button class="btn primary block" id="n-save">حفظ المذكرة</button>
+        ${existing ? '' : '<button class="btn block" id="n-next">التالي: مذكرة أخرى في نفس الملف ➜</button>'}
+        <button class="btn primary block" id="n-save">${existing ? 'حفظ المذكرة' : 'حفظ الملف كاملاً'}</button>
         <button class="btn block" id="n-check">فحص مؤشرات الانطلاق 🌟 (Gemini)</button>
         <button class="btn block" id="n-pdf">معاينة PDF</button>
         ${existing ? '<button class="btn danger block" id="n-delete">حذف المذكرة</button>' : ''}
       </div>`,
   });
 
+  app.querySelectorAll('[data-bdel]').forEach((btn) => {
+    btn.onclick = () => {
+      loadBatch().splice(Number(btn.dataset.bdel), 1);
+      saveBatch();
+      viewNoteEdit('new');
+    };
+  });
+
+  if (!existing) {
+    document.getElementById('n-next').onclick = () => {
+      const note = readNoteForm(n);
+      if (!note.activity && !note.topic && !note.objective) {
+        return toast('اكتبي المادة أو الموضوع أو الهدف أولاً');
+      }
+      loadBatch().push(note);
+      saveBatch();
+      toast('أُضيفت إلى الملف، والمذكرة التالية أمامكِ');
+      viewNoteEdit('new', {
+        domain: note.domain,
+        unit: note.unit,
+        noteNumber: note.noteNumber,
+        duration: note.duration,
+      });
+    };
+  }
+
   document.getElementById('n-save').onclick = () => {
     const note = readNoteForm(n);
-    const idx = data.notes.findIndex((x) => x.id === note.id);
-    if (idx === -1) data.notes.push(note);
-    else data.notes[idx] = note;
+    if (existing) {
+      const idx = data.notes.findIndex((x) => x.id === note.id);
+      data.notes[idx] = note;
+    } else {
+      const current = note.activity || note.topic || note.objective ? [note] : [];
+      const fileId = newId();
+      for (const item of [...loadBatch(), ...current]) {
+        data.notes.push({ ...item, fileId });
+      }
+      clearBatch();
+    }
     if (save()) {
-      toast('تم حفظ المذكرة على الهاتف 🦋');
+      toast('تم حفظ المذكرات على الهاتف 🦋');
       go('#/notes');
     }
   };
@@ -844,6 +983,7 @@ function route() {
     case 'note': return viewNoteEdit(arg ?? 'new');
     case 'settings': return viewSettings();
     case 'appendix': return viewAppendix();
+    case 'curriculum': return viewCurriculum();
     default: return viewHome();
   }
 }

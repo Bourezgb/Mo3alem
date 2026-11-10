@@ -1,6 +1,22 @@
 // الثوابت والنماذج الأساسية. لا يعتمد هذا الملف على المتصفح، فيُختبر بـ Node.
 
 export const TOTAL_WEEKS = 32;
+
+/** المقاطع التعلمية من التدرج السنوي (2026/2027)، مع أسابيعها. */
+export const UNITS = [
+  { no: '01', name: 'الحياة المدرسية', from: 3, to: 5 },
+  { no: '02', name: 'العائلة', from: 6, to: 8 },
+  { no: '03', name: 'الحي والقرية', from: 10, to: 12 },
+  { no: '04', name: 'الرياضة والتسلية', from: 14, to: 16 },
+  { no: '05', name: 'البيئة والطبيعة', from: 18, to: 20 },
+  { no: '06', name: 'التغذية والصحة', from: 21, to: 23 },
+  { no: '07', name: 'التواصل', from: 26, to: 28 },
+  { no: '08', name: 'الموروث الحضاري', from: 29, to: 31 },
+];
+
+export function unitOfWeek(week) {
+  return UNITS.find((u) => week >= u.from && week <= u.to) ?? null;
+}
 export const INTEGRATION_WEEKS = [9, 17, 24, 32];
 export const ASSESSMENT_WEEKS = [13, 25];
 export const WEEKDAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
@@ -169,6 +185,7 @@ export function emptyData() {
     profileVersion: PROFILE_VERSION,
     templateSeeded: true,
     dashboards: {},
+    progress: {},
     appendix: [],
     notes: [],
     template: seedTemplate(),
@@ -190,6 +207,7 @@ export function normalize(raw) {
   const data = {
     templateSeeded: true,
     dashboards: raw.dashboards && typeof raw.dashboards === 'object' ? raw.dashboards : {},
+    progress: raw.progress && typeof raw.progress === 'object' ? raw.progress : {},
     appendix: Array.isArray(raw.appendix) ? raw.appendix : [],
     profile: raw.profileVersion === PROFILE_VERSION
       ? { ...DEFAULT_PROFILE, ...(raw.profile && typeof raw.profile === 'object' ? raw.profile : {}) }
