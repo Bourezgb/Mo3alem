@@ -7,7 +7,7 @@ import {
 import { buildPlan, inWeek } from './scheduler.js';
 import { saveData, exportBackup, readBackupFile, requestPersistence } from './store.js';
 import { checkIndicators, getKey, setKey, deleteKey } from './gemini.js';
-import { esc, noteDoc, worksheetDoc, timetableDoc } from './print.js';
+import { esc, noteDoc, noteFileDoc, worksheetDoc, timetableDoc } from './print.js';
 import { getTheme, setTheme } from './theme.js';
 import { putPdf, getPdf, deletePdf } from './appendix.js';
 import { UNITS, unitOfWeek } from './model.js';
@@ -639,14 +639,37 @@ function viewAppendix() {
 // ---------- المذكرات ----------
 
 function viewNotes() {
-  const notes = [...data.notes].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const all = [...data.notes];
+  const single = all.filter((n) => !n.fileId).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const files = new Map();
+  for (const n of all) {
+    if (!n.fileId) continue;
+    if (!files.has(n.fileId)) files.set(n.fileId, []);
+    files.get(n.fileId).push(n);
+  }
+  const fileCards = [...files.entries()]
+    .sort((a, b) => b[1][0].createdAt.localeCompare(a[1][0].createdAt))
+    .map(([fid, list]) => `
+      <section class="card blue">
+        <h2>📂 ملف: ${list.length} مذكرات</h2>
+        <p>${esc(list[0].noteNumber ? `الأسبوع ${list[0].noteNumber}` : '')} · ${esc(list[0].createdAt.slice(0, 10))}</p>
+        ${list.map((n, i) => `
+          <div class="appx">
+            <div><strong>${i + 1}. ${esc(n.activity || 'بدون مادة')}</strong><small>${esc(n.topic || n.objective || '')}</small></div>
+            <div class="appx-actions"><a class="btn small" href="#/note/${n.id}">تعديل</a></div>
+          </div>`).join('')}
+        <div class="actions">
+          <button class="btn primary block" data-file="${fid}">معاينة الملف كاملاً PDF</button>
+        </div>
+      </section>`).join('');
   page({
     title: '⭐ المذكرات',
     active: 'notes',
     body: `
       <a class="btn primary block" href="#/note/new">➕ مذكرة جديدة</a>
-      ${notes.length
-        ? notes.map((n) => `
+      ${fileCards}
+      ${single.length
+        ? single.map((n) => `
             <section class="card mint">
               <h2>${esc(n.objective || 'مذكرة بلا هدف')}</h2>
               <p>${esc(n.unit)} · ${esc(n.createdAt.slice(0, 10))}</p>
@@ -655,12 +678,18 @@ function viewNotes() {
                 <button class="btn small" data-pdf="${n.id}">معاينة PDF</button>
               </div>
             </section>`).join('')
-        : '<p class="muted center">لا توجد مذكرات بعد.</p>'}`,
+        : (files.size ? '' : '<p class="muted center">لا توجد مذكرات بعد.</p>')}`,
   });
   app.querySelectorAll('[data-pdf]').forEach((btn) => {
     btn.onclick = () => {
       const n = data.notes.find((x) => x.id === btn.dataset.pdf);
       if (n) preview(noteDoc(n, data.profile));
+    };
+  });
+  app.querySelectorAll('[data-file]').forEach((btn) => {
+    btn.onclick = () => {
+      const list = data.notes.filter((n) => n.fileId === btn.dataset.file);
+      if (list.length) preview(noteFileDoc(list, data.profile));
     };
   });
 }
@@ -815,12 +844,7 @@ function viewNoteEdit(id, carry = null) {
       loadBatch().push(note);
       saveBatch();
       toast('أُضيفت إلى الملف، والمذكرة التالية أمامكِ');
-      viewNoteEdit('new', {
-        domain: note.domain,
-        unit: note.unit,
-        noteNumber: note.noteNumber,
-        duration: note.duration,
-      });
+      viewNoteEdit('new', { noteNumber: note.noteNumber });
     };
   }
 

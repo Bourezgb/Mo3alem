@@ -398,3 +398,5 @@ details > summary h2 { display: inline; margin: 0; }
 .wk-list { width: 100%; box-sizing: border-box; }
 .wk, .wk summary, .wk-body { box-sizing: border-box; width: 100%; min-width: 0; }
 .wk-list .wk-body { padding-inline: 8px; }
+/* ملف المذكرات: كل مذكرة في صفحة مستقلة */
+.doc.fill + .doc.fill { break-before: page; page-break-before: always; }
