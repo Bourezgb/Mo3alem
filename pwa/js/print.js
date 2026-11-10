@@ -84,6 +84,11 @@ export function noteDoc(n, profile) {
   return page({ title: 'مذكرة يومية', profile, body, fill: true, bare: true, mono: true });
 }
 
+/** ملف يضم عدة مذكرات: كل مذكرة في صفحة مستقلة. */
+export function noteFileDoc(notes, profile) {
+  return notes.map((n) => noteDoc(n, profile)).join('');
+}
+
 export function worksheetDoc(s, profile) {
   const skills = s.weakSkills.map((x) => `<li><span class="box"></span>${esc(x)}</li>`).join('');
   const exercises = s.exercises.map((x, i) => `
