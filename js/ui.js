@@ -687,6 +687,7 @@ function viewNotes() {
           </div>`).join('')}
         <div class="actions">
           <button class="btn primary block" data-file="${fid}">معاينة الملف كاملاً PDF</button>
+          <button class="btn block" data-addfile="${fid}" data-nn="${esc(list[0].noteNumber ?? '')}">➕ إضافة مذكرة جديدة إلى هذا الملف</button>
         </div>
       </section>`).join('');
   page({
@@ -719,6 +720,9 @@ function viewNotes() {
       if (list.length) preview(noteFileDoc(list, data.profile));
     };
   });
+  app.querySelectorAll('[data-addfile]').forEach((btn) => {
+    btn.onclick = () => startAddToFile(btn.dataset.addfile, btn.dataset.nn);
+  });
 }
 
 function readNoteForm(base) {
@@ -748,6 +752,13 @@ function readNoteForm(base) {
 
 const BATCH_KEY = 'mo3alem.draftBatch';
 let noteBatch = null;
+/** مذكرة جديدة تُضاف مباشرة إلى ملف محفوظ سابقاً. */
+let addToFile = null;
+
+function startAddToFile(fileId, noteNumber) {
+  addToFile = { fileId, noteNumber: noteNumber || '' };
+  go('#/note/new');
+}
 
 function loadBatch() {
   if (noteBatch === null) {
@@ -780,13 +791,15 @@ function clearBatch() {
 function viewNoteEdit(id, carry = null) {
   const existing = id === 'new' ? null : data.notes.find((n) => n.id === id);
   if (id !== 'new' && !existing) return go('#/notes');
-  const batch = id === 'new' ? loadBatch() : [];
+  const target = id === 'new' ? addToFile : null;
+  addToFile = null;
+  const batch = id === 'new' && !target ? loadBatch() : [];
   const n = existing ?? {
     id: newId(),
     createdAt: new Date().toISOString(),
     domain: carry?.domain ?? '', unit: carry?.unit ?? '', activity: '', topic: '', session: '',
     objective: '', competency: '',
-    noteNumber: carry?.noteNumber ?? '', resources: '', duration: carry?.duration ?? '',
+    noteNumber: target?.noteNumber || carry?.noteNumber || '', resources: '', duration: carry?.duration ?? '',
     phases: PHASE_NAMES.map((name) => ({ name, situations: '', indicators: '' })),
   };
   const field = (label, name, value, rows = 0) => `
@@ -797,7 +810,7 @@ function viewNoteEdit(id, carry = null) {
     </label>`;
 
   page({
-    title: existing ? '📝 تعديل المذكرة' : '📝 مذكرات الملف',
+    title: existing ? '📝 تعديل المذكرة' : target ? '📝 مذكرة جديدة في الملف' : '📝 مذكرات الملف',
     active: 'notes',
     back: '#/notes',
     body: `
@@ -846,8 +859,9 @@ function viewNoteEdit(id, carry = null) {
       </section>
 
       <div class="actions">
-        ${existing ? '' : '<button class="btn block" id="n-next">التالي: مذكرة أخرى في نفس الملف ➜</button>'}
-        <button class="btn primary block" id="n-save">${existing ? 'حفظ المذكرة' : 'حفظ الملف كاملاً'}</button>
+        ${existing ? '' : target ? '' : '<button class="btn block" id="n-next">التالي: مذكرة أخرى في نفس الملف ➜</button>'}
+        ${existing?.fileId ? '<button class="btn block" id="n-add-file">➕ إضافة مذكرة جديدة إلى نفس الملف</button>' : ''}
+        <button class="btn primary block" id="n-save">${existing ? 'حفظ المذكرة' : target ? 'حفظ المذكرة في الملف' : 'حفظ الملف كاملاً'}</button>
         <button class="btn block" id="n-check">فحص مؤشرات الانطلاق 🌟 (Gemini)</button>
         <button class="btn block" id="n-pdf">معاينة PDF</button>
         ${existing ? '<button class="btn danger block" id="n-delete">حذف المذكرة</button>' : ''}
@@ -862,7 +876,7 @@ function viewNoteEdit(id, carry = null) {
     };
   });
 
-  if (!existing) {
+  if (!existing && !target) {
     document.getElementById('n-next').onclick = () => {
       const note = readNoteForm(n);
       if (!note.activity && !note.topic && !note.objective) {
@@ -875,11 +889,19 @@ function viewNoteEdit(id, carry = null) {
     };
   }
 
+  const addFileBtn = document.getElementById('n-add-file');
+  if (addFileBtn) addFileBtn.onclick = () => startAddToFile(existing.fileId, existing.noteNumber);
+
   document.getElementById('n-save').onclick = () => {
     const note = readNoteForm(n);
     if (existing) {
       const idx = data.notes.findIndex((x) => x.id === note.id);
       data.notes[idx] = note;
+    } else if (target) {
+      if (!note.activity && !note.topic && !note.objective) {
+        return toast('اكتبي المادة أو الموضوع أو الهدف أولاً');
+      }
+      data.notes.push({ ...note, fileId: target.fileId });
     } else {
       const current = note.activity || note.topic || note.objective ? [note] : [];
       const fileId = newId();
