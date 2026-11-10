@@ -380,3 +380,21 @@ details > summary h2 { display: inline; margin: 0; }
 .doc.mono .note-head, .doc.mono .note-side, .doc.mono .note-objective { border: 1px solid #000 !important; }
 .doc.mono .note-left { border-right: 1px solid #000 !important; }
 .doc.mono .phases tbody tr:nth-child(even) td { background: #fff !important; }
+
+/* ---------- التدرج السنوي ---------- */
+.wk { border-bottom: 1px dashed rgba(127,127,127,.35); padding: 6px 0; }
+.wk:last-child { border-bottom: 0; }
+.wk summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; cursor: pointer; list-style: none; padding: 6px 8px; }
+.wk summary::-webkit-details-marker { display: none; }
+.wk-no { font-weight: 700; white-space: nowrap; }
+.wk-unit { color: var(--muted); font-size: 13px; text-align: left; }
+.wk-done { font-size: 13px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; padding-inline-start: 8px; }
+.wk.paused, .wk.assessment, .wk.integration { opacity: .85; }
+.wk-body { padding: 4px 0 8px; }
+.cur-row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; font-size: 14px; }
+.cur-row span { color: var(--muted); flex: none; }
+.cur-row strong { font-weight: 600; text-align: left; }
+.cur-row small { color: var(--muted); font-weight: 400; }
+.wk-list { width: 100%; box-sizing: border-box; }
+.wk, .wk summary, .wk-body { box-sizing: border-box; width: 100%; min-width: 0; }
+.wk-list .wk-body { padding-inline: 8px; }
