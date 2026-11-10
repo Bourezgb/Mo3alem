@@ -364,11 +364,12 @@ details > summary h2 { display: inline; margin: 0; }
 .note-sheet .sign { margin-top: 12px; }
 
 /* المذكرة: الجدول بحجم الورقة كاملة وخط أكبر */
-.doc.fill { min-height: 272mm; }
-.note-sheet .phases th, .note-sheet .phases td { font-size: 16px; line-height: 1.9; }
-.note-sheet .phases th { font-size: 16px; }
-.note-sheet .phases td.ph { font-size: 17px; }
-.note-head p, .note-objective { font-size: 15px; }
+.doc.fill { min-height: 272mm; width: 186mm; }
+/* حجم الخط يتكيّف مع الصفحة (يضبطه fitNotes في ui.js عبر --fit) حتى لا تنزل المذكرة إلى صفحة ثانية */
+.note-sheet .phases th, .note-sheet .phases td { font-size: calc(16px * var(--fit, 1)); line-height: 1.7; padding: calc(6px * var(--fit, 1)) 8px; }
+.note-sheet .phases th { font-size: calc(16px * var(--fit, 1)); }
+.note-sheet .phases td.ph { font-size: calc(17px * var(--fit, 1)); }
+.note-head p, .note-objective { font-size: calc(15px * var(--fit, 1)); }
 .note-sheet .sign { justify-content: flex-start; }
 
 /* المذكرة المطبوعة: أبيض وأسود فقط */
@@ -400,3 +401,4 @@ details > summary h2 { display: inline; margin: 0; }
 .wk-list .wk-body { padding-inline: 8px; }
 /* ملف المذكرات: كل مذكرة في صفحة مستقلة */
 .doc.fill + .doc.fill { break-before: page; page-break-before: always; }
+@media print { .doc.fill { zoom: 1 !important; } }
