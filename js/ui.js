@@ -70,6 +70,32 @@ function occurrenceText(o) {
   return 'متوقفة أو تقويم';
 }
 
+const PAGE_PX = 1030; // الارتفاع المتاح لصفحة A4 بعد الهوامش (≈ 273mm)
+const PAGE_WIDTH_PX = 703; // عرض الصفحة بعد الهوامش (186mm)
+
+/** يصغّر خط كل مذكرة حتى تتسع في صفحة واحدة، ثم يكبّرها على الشاشة لتناسب عرض المعاينة. */
+function fitNotes(root) {
+  if (!root) return;
+  const available = root.clientWidth || PAGE_WIDTH_PX;
+  root.querySelectorAll('.doc.fill').forEach((doc) => {
+    doc.style.zoom = '';
+    let k = 1;
+    doc.style.setProperty('--fit', k);
+    while (doc.offsetHeight > PAGE_PX && k > 0.5) {
+      k = Math.round((k - 0.04) * 100) / 100;
+      doc.style.setProperty('--fit', k);
+    }
+    const zoom = Math.min(1, (available - 8) / PAGE_WIDTH_PX);
+    if (zoom < 1) doc.style.zoom = zoom.toFixed(3);
+  });
+}
+
+function refitOpenPreview() {
+  if (!modal.hidden) fitNotes(document.getElementById('print-root'));
+}
+window.addEventListener('beforeprint', refitOpenPreview);
+window.addEventListener('resize', refitOpenPreview);
+
 /** نافذة معاينة للـ PDF: الطباعة من حوار المتصفح، والرجوع للتعديل. */
 function preview(html) {
   modal.innerHTML = `
@@ -81,6 +107,7 @@ function preview(html) {
       <div id="print-root">${html}</div>
     </div>`;
   modal.hidden = false;
+  fitNotes(document.getElementById('print-root'));
   document.getElementById('p-print').onclick = () => window.print();
   document.getElementById('p-back').onclick = closeModal;
 }
